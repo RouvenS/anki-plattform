@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\RegisterController;
+use App\Http\Controllers\SettingsController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -28,3 +29,6 @@ Route::get('/about', function () {
 Route::get('/tutorial', function () {
     return view('tutorial');
 })->name('tutorial');
+
+Route::get('/settings', [SettingsController::class, 'index'])->name('settings')->middleware('auth');
+Route::post('/settings', [SettingsController::class, 'store'])->name('settings.store')->middleware('auth');
