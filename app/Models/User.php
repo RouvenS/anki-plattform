@@ -57,4 +57,9 @@ class User extends Authenticatable
             $user->anki_api_key = \Illuminate\Support\Str::random(60);
         });
     }
+
+    public function cards()
+    {
+        return $this->hasMany(Card::class);
+    }
 }

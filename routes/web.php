@@ -4,10 +4,11 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\CardController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
-Route::get('/', [HomeController::class, 'index']);
+Route::get('/', [HomeController::class, 'index'])->name('home');
 
 Route::get('/login', [HomeController::class, 'loginForm'])->name('login');
 Route::post('/login', [HomeController::class, 'login']);
@@ -32,3 +33,5 @@ Route::get('/tutorial', function () {
 
 Route::get('/settings', [SettingsController::class, 'index'])->name('settings')->middleware('auth');
 Route::post('/settings', [SettingsController::class, 'store'])->name('settings.store')->middleware('auth');
+
+Route::post('/cards', [CardController::class, 'store'])->name('cards.store')->middleware('auth');

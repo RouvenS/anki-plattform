@@ -7,7 +7,8 @@
             <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
                 <h1 class="text-2xl font-bold mb-4">Create Flash Cards</h1>
                 <p class="mb-4">Transform your vocabulary list into intelligent flash cards. Simply paste your words below and we'll generate definitions, examples, and more.</p>
-                <form>
+                <form method="POST" action="{{ route('cards.store') }}">
+                    @csrf
                     <div class="mb-4">
                         <label class="block text-gray-700 text-sm font-bold mb-2" for="vocabulary">
                             Enter your vocabulary words, one per line:
