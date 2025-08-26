@@ -13,7 +13,7 @@
                         <label class="block text-gray-700 text-sm font-bold mb-2" for="vocabulary">
                             Enter your vocabulary words, one per line:
                         </label>
-                        <textarea class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="vocabulary" name="vocabulary" rows="4" placeholder="car - машина
+                        <textarea class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="vocabulary" name="vocabulary" rows="4" placeholder="car - машина (The translation is optional, only if you want a specify it)
 plane - самолет
 improve - улучшать
 try - пытаться"></textarea>
