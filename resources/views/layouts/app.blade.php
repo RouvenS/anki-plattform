@@ -17,5 +17,6 @@
         <div class="container mx-auto mt-4">
             @yield('content')
         </div>
+        @stack('scripts')
     </body>
 </html>

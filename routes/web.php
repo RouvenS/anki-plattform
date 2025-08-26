@@ -37,4 +37,8 @@ Route::post('/settings', [SettingsController::class, 'store'])->name('settings.s
 
 Route::post('/cards', [CardController::class, 'store'])->name('cards.store')->middleware('auth');
 
-Route::resource('batches', BatchController::class)->middleware('auth');
+
+Route::middleware('auth')->group(function () {
+    Route::resource('batches', BatchController::class);
+    Route::post('/cards/add-to-anki', [CardController::class, 'addToAnki'])->name('cards.add-to-anki');
+});

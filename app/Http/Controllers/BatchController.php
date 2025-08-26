@@ -17,7 +17,23 @@ class BatchController extends Controller
     {
         $this->authorize('view', $batch);
         $cards = $batch->cards()->paginate(10);
-        return view('batches.show', compact('batch', 'cards'));
+
+        $decks = [];
+        try {
+            $response = \Illuminate\Support\Facades\Http::timeout(2)->post('http://127.0.0.1:8765', [
+                'action' => 'deckNames',
+                'version' => 6,
+            ]);
+
+            if ($response->ok()) {
+                $decks = $response->json()['result'];
+            }
+        } catch (\Illuminate\Http\Client\ConnectionException $e) {
+            // Anki is not running or AnkiConnect is not available.
+            // Silently ignore and return an empty array of decks.
+        }
+
+        return view('batches.show', compact('batch', 'cards', 'decks'));
     }
 
     public function destroy(Batch $batch)
