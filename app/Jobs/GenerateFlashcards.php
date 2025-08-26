@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\User;
+use App\Models\Batch;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -18,14 +19,16 @@ class GenerateFlashcards implements ShouldQueue
 
     protected $word;
     protected $user;
+    protected $batch;
 
     /**
      * Create a new job instance.
      */
-    public function __construct(string $word, User $user)
+    public function __construct(string $word, User $user, Batch $batch)
     {
         $this->word = $word;
         $this->user = $user;
+        $this->batch = $batch;
     }
 
     /**
@@ -62,6 +65,7 @@ class GenerateFlashcards implements ShouldQueue
                     continue;
                 }
 
+                $cardData['batch_id'] = $this->batch->id;
                 $card = $this->user->cards()->create($cardData);
                 GenerateTts::dispatch($card);
             }

@@ -5,6 +5,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\CardController;
+use App\Http\Controllers\BatchController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -35,3 +36,5 @@ Route::get('/settings', [SettingsController::class, 'index'])->name('settings')-
 Route::post('/settings', [SettingsController::class, 'store'])->name('settings.store')->middleware('auth');
 
 Route::post('/cards', [CardController::class, 'store'])->name('cards.store')->middleware('auth');
+
+Route::resource('batches', BatchController::class)->middleware('auth');

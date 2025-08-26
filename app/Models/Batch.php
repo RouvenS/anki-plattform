@@ -4,16 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Card extends Model
+class Batch extends Model
 {
     protected $fillable = [
         'user_id',
-        'front',
-        'back',
-        'tts',
-        'audio_path',
-        'expires_at',
-        'batch_id',
+        'name',
     ];
 
     public function user()
@@ -21,8 +16,8 @@ class Card extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function batch()
+    public function cards()
     {
-        return $this->belongsTo(Batch::class);
+        return $this->hasMany(Card::class);
     }
 }

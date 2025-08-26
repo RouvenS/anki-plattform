@@ -16,10 +16,14 @@ class CardController extends Controller
         $words = explode("\n", $request->vocabulary);
         $user = $request->user();
 
+        $batch = $user->batches()->create([
+            'name' => 'Batch from ' . now()->format('Y-m-d H:i:s'),
+        ]);
+
         foreach ($words as $word) {
             $word = trim($word);
             if (!empty($word)) {
-                GenerateFlashcards::dispatch($word, $user);
+                GenerateFlashcards::dispatch($word, $user, $batch);
             }
         }
 
