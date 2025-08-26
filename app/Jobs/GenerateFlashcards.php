@@ -51,6 +51,8 @@ class GenerateFlashcards implements ShouldQueue
                 return;
             }
 
+            Log::info('OpenAI response for flashcards', ['response' => $response->body()]);
+
             $cards = json_decode($response->body(), true)['choices'][0]['message']['content'];
             $cards = json_decode($cards, true);
 
@@ -58,6 +60,8 @@ class GenerateFlashcards implements ShouldQueue
                 Log::error('Failed to decode json from OpenAI', ['response' => $response->body()]);
                 return;
             }
+
+            Log::info('Decoded cards', ['cards' => $cards]);
 
             foreach ($cards as $cardData) {
                 if (!isset($cardData['front']) || !isset($cardData['back']) || !isset($cardData['tts'])) {

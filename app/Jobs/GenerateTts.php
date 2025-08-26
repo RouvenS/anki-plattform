@@ -32,6 +32,7 @@ class GenerateTts implements ShouldQueue
      */
     public function handle(): void
     {
+        Log::info('Generating TTS for card: ' . $this->card->id, ['input' => $this->card->tts]);
         try {
             $response = Http::withToken($this->card->user->openai_api_key)->post('https://api.openai.com/v1/audio/speech', [
                 'model' => 'tts-1',

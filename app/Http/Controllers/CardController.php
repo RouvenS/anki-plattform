@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Card;
 use Illuminate\Http\Request;
 use App\Jobs\GenerateFlashcards;
+use App\Jobs\GenerateTts;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Storage;
@@ -86,5 +87,38 @@ class CardController extends Controller
         } catch (ConnectionException $e) {
             return redirect()->route('batches.show', $request->input('batch_id'))->with('error', 'Could not connect to Anki. Is it running?');
         }
+    }
+
+    public function update(Request $request, Card $card)
+    {
+        $this->authorize('update', $card);
+
+        $request->validate([
+            'front' => 'required|string|max:255',
+            'back' => 'required|string|max:255',
+            'tts' => 'required|string|max:255',
+        ]);
+
+        $ttsChanged = $card->tts !== $request->tts;
+
+        $card->update([
+            'front' => $request->front,
+            'back' => $request->back,
+            'tts' => $request->tts,
+        ]);
+
+        if ($ttsChanged) {
+            if ($card->audio_path && Storage::disk('public')->exists($card->audio_path)) {
+                Storage::disk('public')->delete($card->audio_path);
+            }
+
+            GenerateTts::dispatchSync($card);
+            $card->refresh();
+        }
+
+        return response()->json([
+            'success' => true,
+            'audio_path' => $ttsChanged ? Storage::url($card->audio_path) : null,
+        ]);
     }
 }
