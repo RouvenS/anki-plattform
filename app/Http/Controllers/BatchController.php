@@ -42,4 +42,19 @@ class BatchController extends Controller
         $batch->delete();
         return redirect()->route('batches.index')->with('success', 'Batch deleted successfully.');
     }
+
+    public function update(Request $request, Batch $batch)
+    {
+        $this->authorize('update', $batch);
+
+        $request->validate([
+            'name' => 'required|string|max:255',
+        ]);
+
+        $batch->update([
+            'name' => $request->name,
+        ]);
+
+        return response()->json(['success' => true]);
+    }
 }
