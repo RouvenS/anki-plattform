@@ -70,7 +70,7 @@ POS-SPECIFIC INSTRUCTIONS
 OUTPUT FORMAT (IMPORTANT)
 - Return ONLY a JSON ARRAY of objects like:
   [
-    {"front": "...", "back": "...\n...\n...", "tts": "..."},
+    {"front": "...", "back": "...", "tts": "..."},
     ...
   ]
 
