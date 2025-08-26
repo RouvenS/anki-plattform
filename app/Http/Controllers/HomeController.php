@@ -11,7 +11,8 @@ class HomeController extends Controller
     {
         if (Auth::check()) {
             $userName = Auth::user()->name;
-            return view('home', ['userName' => $userName]);
+            $prompts = auth()->user()->prompts()->orWhere('is_standard', true)->get();
+            return view('home', ['userName' => $userName, 'prompts' => $prompts]);
         }
 
         return view('welcome');

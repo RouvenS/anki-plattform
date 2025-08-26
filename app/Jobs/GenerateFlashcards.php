@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Models\User;
 use App\Models\Batch;
+use App\Models\Prompt;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -20,15 +21,17 @@ class GenerateFlashcards implements ShouldQueue
     protected $word;
     protected $user;
     protected $batch;
+    protected $promptId;
 
     /**
      * Create a new job instance.
      */
-    public function __construct(string $word, User $user, Batch $batch)
+    public function __construct(string $word, User $user, Batch $batch, int $promptId)
     {
         $this->word = $word;
         $this->user = $user;
         $this->batch = $batch;
+        $this->promptId = $promptId;
     }
 
     /**
@@ -36,13 +39,19 @@ class GenerateFlashcards implements ShouldQueue
      */
     public function handle(): void
     {
-        $prompt = file_get_contents(storage_path('app/public/prompts/russian/russian_prompt.txt'));
-        $prompt .= "\n\n" . $this->word;
+        $prompt = Prompt::find($this->promptId);
+        if (!$prompt) {
+            Log::error('Prompt not found', ['prompt_id' => $this->promptId]);
+            return;
+        }
+
+        $promptContent = $prompt->prompt;
+        $promptContent .= "\n\n" . $this->word;
 
         try {
             $response = Http::withToken($this->user->openai_api_key)->post('https://api.openai.com/v1/chat/completions', [
                 'model' => 'gpt-4',
-                'messages' => [['role' => 'user', 'content' => $prompt]],
+                'messages' => [['role' => 'user', 'content' => $promptContent]],
                 'temperature' => 0.2,
             ]);
 

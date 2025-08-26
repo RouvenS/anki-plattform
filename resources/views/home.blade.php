@@ -10,6 +10,14 @@
                 <form method="POST" action="{{ route('cards.store') }}">
                     @csrf
                     <div class="mb-4">
+                        <label for="prompt_id" class="block text-gray-700 text-sm font-bold mb-2">Prompt</label>
+                        <select id="prompt_id" name="prompt_id" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                            @foreach($prompts as $prompt)
+                                <option value="{{ $prompt->id }}">{{ $prompt->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="mb-4">
                         <label class="block text-gray-700 text-sm font-bold mb-2" for="vocabulary">
                             Enter your vocabulary words, one per line:
                         </label>

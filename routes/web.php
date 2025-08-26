@@ -41,5 +41,7 @@ Route::post('/cards', [CardController::class, 'store'])->name('cards.store')->mi
 Route::middleware('auth')->group(function () {
     Route::resource('batches', BatchController::class);
     Route::resource('cards', CardController::class);
+    Route::resource('prompts', \App\Http\Controllers\PromptController::class);
+    Route::post('prompts/{prompt}/duplicate', [\App\Http\Controllers\PromptController::class, 'duplicate'])->name('prompts.duplicate');
     Route::post('/cards/add-to-anki', [CardController::class, 'addToAnki'])->name('cards.add-to-anki');
 });

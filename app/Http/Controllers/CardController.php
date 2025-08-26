@@ -16,6 +16,7 @@ class CardController extends Controller
     {
         $request->validate([
             'vocabulary' => 'required|string',
+            'prompt_id' => 'required|exists:prompts,id',
         ]);
 
         $words = explode("\n", $request->vocabulary);
@@ -28,7 +29,7 @@ class CardController extends Controller
         foreach ($words as $word) {
             $word = trim($word);
             if (!empty($word)) {
-                GenerateFlashcards::dispatch($word, $user, $batch);
+                GenerateFlashcards::dispatch($word, $user, $batch, $request->prompt_id);
             }
         }
 
