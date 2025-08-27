@@ -9,3 +9,42 @@
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
 }
+
+/* Base tweaks */
+@layer base {
+  html { @apply scroll-smooth; }
+  body { @apply text-slate-800 antialiased; }
+}
+
+/* Reusable components that mirror your React UI */
+@layer components {
+  .page-bg { @apply min-h-screen bg-gradient-to-br from-slate-50 via-purple-50/30 to-indigo-50/40; }
+
+  .nav-glass { @apply bg-white/60 backdrop-blur-xl border-b border-white/20; }
+  .nav-container { @apply max-w-6xl mx-auto px-6 py-4; }
+  .brand { @apply text-xl font-bold bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent; }
+
+  .card-glass { @apply relative bg-white/80 backdrop-blur-xl rounded-3xl p-8 border border-white/40 shadow-xl; }
+
+  .heading-gradient { @apply bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent; }
+
+  .btn-primary {
+    @apply inline-flex items-center gap-2
+           bg-gradient-to-r from-violet-600 to-indigo-600
+           hover:from-violet-700 hover:to-indigo-700
+           text-white px-8 py-3 rounded-2xl font-medium
+           transition-all duration-300 hover:scale-105
+           disabled:opacity-50 disabled:scale-100;
+  }
+
+  .btn-ghost { @apply inline-flex items-center justify-center rounded-2xl p-3 hover:bg-white/60 transition; }
+
+  .alert-amber {
+    @apply mt-4 p-4 bg-amber-50 border border-amber-200 rounded-2xl flex items-start gap-3 text-amber-800;
+  }
+}
+
+/* Small utility for the soft “blob” glows */
+@layer utilities {
+  .blob { @apply absolute rounded-full blur-3xl; }
+}

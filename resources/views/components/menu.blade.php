@@ -1,32 +1,36 @@
-<nav class="bg-gray-800">
-    <div class="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
-        <div class="relative flex items-center justify-between h-16">
-            <div class="flex-1 flex items-center justify-center sm:items-stretch sm:justify-start">
-                <div class="flex-shrink-0 flex items-center">
-                    <a href="/" class="text-white text-2xl font-bold">Anki</a>
-                </div>
-                <div class="hidden sm:block sm:ml-6">
-                    <div class="flex space-x-4">
-                        <a href="/about" class="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">About</a>
-                        <a href="/tutorial" class="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Tutorial</a>
-                    </div>
-                </div>
-            </div>
-            <div class="absolute inset-y-0 right-0 flex items-center pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0">
-                @guest
-                    <a href="/login" class="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Login</a>
-                    <a href="/register" class="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Register</a>
-                @endguest
-                @auth
-                    <a href="/settings" class="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Settings</a>
-                    <a href="{{ route('batches.index') }}" class="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Batches</a>
-                    <a href="{{ route('prompts.index') }}" class="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Prompts</a>
-                    <form method="POST" action="/logout">
-                        @csrf
-                        <button type="submit" class="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Logout</button>
-                    </form>
-                @endauth
-            </div>
-        </div>
+<nav class="nav-container">
+<div class="flex items-center justify-between">
+    <a href="{{ url('/') }}" class="flex items-center gap-3 group transition-all duration-300">
+    <div class="w-10 h-10 bg-gradient-to-r from-violet-600 to-indigo-600 rounded-2xl grid place-items-center group-hover:scale-105 transition-transform duration-300">
+        {{-- book icon (lucide-like) --}}
+        <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+        <path d="M4 4v15.5" />
+        <path d="M8 4v13" />
+        <path d="M16 4v13" />
+        <path d="M20 4v13" />
+        </svg>
     </div>
+    <span class="brand">AnkiCraft</span>
+    </a>
+
+    <div class="flex items-center gap-8">
+    <a href="{{ url('/') }}" class="text-sm font-medium transition-all duration-300 hover:text-violet-600 {{ request()->is('/') ? 'text-violet-600' : 'text-slate-600' }}">Home</a>
+    <a href="{{ url('/about') }}" class="text-sm font-medium transition-all duration-300 hover:text-violet-600 {{ request()->is('about') ? 'text-violet-600' : 'text-slate-600' }}">About</a>
+
+    @guest
+        <a href="{{ route('login') }}" class="text-sm font-medium transition-all duration-300 hover:text-violet-600 text-slate-600">Login</a>
+        <a href="{{ route('register') }}" class="text-sm font-medium transition-all duration-300 hover:text-violet-600 text-slate-600">Register</a>
+    @endguest
+    @auth
+        <a href="{{ route('settings') }}" class="text-sm font-medium transition-all duration-300 hover:text-violet-600 text-slate-600">Settings</a>
+        <a href="{{ route('batches.index') }}" class="text-sm font-medium transition-all duration-300 hover:text-violet-600 text-slate-600">Batches</a>
+        <a href="{{ route('prompts.index') }}" class="text-sm font-medium transition-all duration-300 hover:text-violet-600 text-slate-600">Prompts</a>
+        <form method="POST" action="{{ route('logout') }}" class="inline">
+        @csrf
+        <button class="text-sm font-medium transition-all duration-300 hover:text-violet-600 text-slate-600">Logout</button>
+        </form>
+    @endauth
+    </div>
+</div>
 </nav>
