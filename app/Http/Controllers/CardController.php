@@ -38,11 +38,16 @@ class CardController extends Controller
 
     public function addToAnki(Request $request)
     {
-        $request->validate([
-            'cards' => 'required|array',
-            'deck' => 'required|string',
-            'batch_id' => 'required|exists:batches,id',
-        ]);
+        $request->validate(
+            [
+                'cards' => 'required|array',
+                'deck' => 'required|string',
+                'batch_id' => 'required|exists:batches,id',
+            ],
+            [
+                'cards.required' => 'You have to select at least one card.',
+            ]
+        );
 
         $cards = Card::find($request->input('cards'));
 
