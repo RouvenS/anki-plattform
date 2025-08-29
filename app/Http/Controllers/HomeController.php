@@ -2,42 +2,21 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Batch;
+use App\Models\Prompt;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class HomeController extends Controller
 {
-    public function index()
+    public function __invoke(Request $request)
     {
-        if (Auth::check()) {
-            $userName = Auth::user()->name;
-            $prompts = auth()->user()->prompts()->orWhere('is_standard', true)->get();
-            return view('home', ['userName' => $userName, 'prompts' => $prompts]);
+        if (!Auth::check()) {
+            return view('welcome');
         }
 
-        return view('welcome');
-    }
-
-    public function loginForm()
-    {
-        if (Auth::check()) {
-            return redirect('/');
-        }
-        return view('login');
-    }
-
-    public function login(Request $request)
-    {
-        $credentials = $request->only('email', 'password');
-
-        if (Auth::attempt($credentials)) {
-            $request->session()->regenerate();
-
-            return redirect()->intended('/');
-        }
-
-        return back()->withErrors([
-            'email' => 'The provided credentials do not match our records.',
-        ]);
+        $prompts = Prompt::all();
+        $batches = Auth::user()->batches()->latest()->paginate(10);
+        return view('home', compact('prompts', 'batches'));
     }
 }

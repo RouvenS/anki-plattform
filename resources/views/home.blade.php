@@ -8,6 +8,14 @@
       Transform your vocabulary list into intelligent flash cards.
       Simply paste your words below and we’ll generate definitions, examples, and more.
     </p>
+    <div class="mt-8">
+        <button id="scroll-down-btn" class="btn-secondary">
+            See your created cards
+            <svg class="w-4 h-4 ml-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 13.5L12 21m0 0l-7.5-7.5M12 21V3" />
+            </svg>
+        </button>
+    </div>
   </div>
 
   {{-- Glass input card --}}
@@ -38,7 +46,7 @@
 plane - самолёт
 improve - улучшать
 try - пытаться"
-              class="min-h-64 text-lg w-full rounded-2xl border-0 bg-transparent resize-y
+              class="min-h-48 text-lg w-full rounded-2xl border-0 bg-transparent resize-y
                      focus:ring-0 placeholder:text-slate-400
                      shadow-inner px-3 py-3"></textarea>
           </div>
@@ -76,4 +84,126 @@ try - пытаться"
       </div>
     </div>
   </div>
+
+  {{-- Batches List --}}
+  <div class="max-w-4xl mx-auto mt-16">
+    @if (session('success'))
+        <div class="alert-green mb-6">
+            <div>
+                <p class="font-medium">Success!</p>
+                <p class="text-xs mt-1">{{ session('success') }}</p>
+            </div>
+        </div>
+    @endif
+    <div id="error-message" class="hidden alert-amber mb-6"></div>
+
+    <div class="card-glass">
+        <div class="overflow-x-auto">
+            <table class="min-w-full">
+                <thead class="border-b border-slate-200">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-sm font-medium text-slate-500">
+                            Name
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-sm font-medium text-slate-500">
+                            Created At
+                        </th>
+                        <th scope="col" class="relative px-6 py-3">
+                            <span class="sr-only">Actions</span>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200">
+                    @foreach ($batches as $batch)
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-slate-900">
+                                    <span class="editable-batch-name" data-batch-id="{{ $batch->id }}" contenteditable="true">{{ $batch->name }}</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-slate-900">{{ $batch->created_at->format('Y-m-d H:i:s') }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                                <a href="{{ route('batches.show', $batch) }}" class="btn-secondary">View</a>
+                                <form class="inline-block" action="{{ route('batches.destroy', $batch) }}" method="POST" onsubmit="return confirm('Are you sure?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn-danger">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+        <div class="mt-4">
+            {{ $batches->links() }}
+        </div>
+    </div>
+  </div>
 @endsection
+
+@push('scripts')
+<script>
+    document.getElementById('scroll-down-btn').addEventListener('click', () => {
+        window.scrollBy({
+            top: window.innerHeight / 2,
+            left: 0,
+            behavior: 'smooth'
+        });
+    });
+
+    document.querySelectorAll('.editable-batch-name').forEach(item => {
+        item.addEventListener('blur', function(e) {
+            updateBatchName(e.target);
+        });
+        item.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                e.target.blur();
+            }
+        });
+    });
+
+    function updateBatchName(element) {
+        const batchId = element.dataset.batchId;
+        const newName = element.innerText;
+        const originalName = element.dataset.originalName || newName;
+
+        fetch(`/batches/${batchId}`,
+        {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({ name: newName })
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(errorData => {
+                    throw new Error(errorData.message || 'An unknown error occurred.');
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            if(data.success) {
+                element.dataset.originalName = newName;
+                // Maybe show a success message
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            element.innerText = originalName; // Revert to original name
+            const errorMessage = document.getElementById('error-message');
+            errorMessage.innerText = `Error updating batch name: ${error.message}`;
+            errorMessage.classList.remove('hidden');
+            setTimeout(() => {
+                errorMessage.classList.add('hidden');
+            }, 5000);
+        });
+    }
+</script>
+@endpush
