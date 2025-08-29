@@ -18,25 +18,19 @@ class GenerateFlashcards implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    protected $word;
-    protected $user;
-    protected $batch;
-    protected $promptId;
+    protected string $word;
+    protected User $user;
+    protected Batch $batch;
+    protected int $promptId;
 
-    /**
-     * Create a new job instance.
-     */
     public function __construct(string $word, User $user, Batch $batch, int $promptId)
     {
-        $this->word = $word;
-        $this->user = $user;
-        $this->batch = $batch;
+        $this->word     = $word;
+        $this->user     = $user;
+        $this->batch    = $batch;
         $this->promptId = $promptId;
     }
 
-    /**
-     * Execute the job.
-     */
     public function handle(): void
     {
         $prompt = Prompt::find($this->promptId);
@@ -45,45 +39,125 @@ class GenerateFlashcards implements ShouldQueue
             return;
         }
 
-        $promptContent = $prompt->prompt;
-        $promptContent .= "\n\n" . $this->word;
+        // --- 1) Build schema for Structured Outputs
+        $schema = [
+            'type' => 'object',
+            'additionalProperties' => false,
+            'required' => ['cards'],
+            'properties' => [
+                'cards' => [
+                    'type' => 'array',
+                    'minItems' => 1,
+                    'maxItems' => 5, // be generous; you can tune
+                    'items' => [
+                        'type' => 'object',
+                        'additionalProperties' => false,
+                        'required' => ['front', 'back', 'tts'],
+                        'properties' => [
+                            'front' => ['type' => 'string'],
+                            'back'  => ['type' => 'string'],
+                            'tts'   => ['type' => 'string'],
+                        ],
+                    ],
+                ],
+            ],
+        ];
+
+        // --- 2) Compose instructions + input
+        $system = "You generate Russian–English flash cards that strictly follow linguistic rules and return JSON matching the provided schema.";
+        $user   = $prompt->prompt . "\n\nINPUT LEXEME:\n" . $this->word;
 
         try {
-            $response = Http::withToken($this->user->openai_api_key)->post('https://api.openai.com/v1/chat/completions', [
-                'model' => 'gpt-4',
-                'messages' => [['role' => 'user', 'content' => $promptContent]],
-                'temperature' => 0.2,
-            ]);
+            $resp = Http::timeout(60)
+                ->withToken($this->user->openai_api_key)
+                ->post('https://api.openai.com/v1/responses', [
+                    // Pick a model that supports Structured Outputs.
+                    // If you prefer a smaller/cheaper one, use 'gpt-4o-mini-2024-07-18'.
+                    'model' => 'gpt-4o-2024-08-06',
 
-            if ($response->failed()) {
-                Log::error('OpenAI API request failed', ['response' => $response->body()]);
+                    'input' => [
+                        ['role' => 'system', 'content' => $system],
+                        ['role' => 'user',   'content' => $user],
+                    ],
+
+                    // Force the JSON schema
+                    'text' => [
+                        'format' => [
+                            'type'   => 'json_schema',
+                            'name'   => 'flash_cards',
+                            'schema' => $schema,
+                            'strict' => true,
+                        ],
+                    ],
+
+                    // Optional; prevents truncation
+                    'max_output_tokens' => 800,
+                ]);
+
+            if ($resp->failed()) {
+                Log::error('OpenAI Responses API failed', [
+                    'status'   => $resp->status(),
+                    'response' => $resp->body(),
+                ]);
                 return;
             }
 
-            Log::info('OpenAI response for flashcards', ['response' => $response->body()]);
+            $data = $resp->json();
 
-            $cards = json_decode($response->body(), true)['choices'][0]['message']['content'];
-            $cards = json_decode($cards, true);
-
-            if (json_last_error() !== JSON_ERROR_NONE) {
-                Log::error('Failed to decode json from OpenAI', ['response' => $response->body()]);
+            // Handle refusals / incomplete generations explicitly
+            if (($data['status'] ?? null) !== 'completed') {
+                Log::error('OpenAI response incomplete', ['response' => $data]);
                 return;
             }
 
-            Log::info('Decoded cards', ['cards' => $cards]);
+            // Prefer the aggregated output_text; fall back to scanning content items.
+            $jsonText = $data['output_text'] ?? null;
 
-            foreach ($cards as $cardData) {
-                if (!isset($cardData['front']) || !isset($cardData['back']) || !isset($cardData['tts'])) {
-                    Log::error('Invalid card data from OpenAI', ['card' => $cardData]);
+            if (!$jsonText) {
+                // Look for output_text content item
+                $items = $data['output'][0]['content'] ?? [];
+                foreach ($items as $item) {
+                    if (($item['type'] ?? null) === 'refusal') {
+                        Log::warning('Model refusal', ['refusal' => $item['refusal'] ?? '']);
+                        return;
+                    }
+                    if (($item['type'] ?? null) === 'output_text') {
+                        $jsonText = $item['text'] ?? null;
+                        break;
+                    }
+                }
+            }
+
+            if (!$jsonText) {
+                Log::error('No output_text found in OpenAI response', ['response' => $data]);
+                return;
+            }
+
+            // Parse JSON (schema guarantees structure)
+            $parsed = json_decode($jsonText, true);
+            if (!is_array($parsed) || !isset($parsed['cards']) || !is_array($parsed['cards'])) {
+                Log::error('Parsed JSON missing expected "cards" array', ['parsed' => $parsed]);
+                return;
+            }
+
+            foreach ($parsed['cards'] as $cardData) {
+                // Double-check required fields
+                if (!isset($cardData['front'], $cardData['back'], $cardData['tts'])) {
+                    Log::error('Card missing required keys', ['card' => $cardData]);
                     continue;
                 }
 
-                $cardData['batch_id'] = $this->batch->id;
-                $card = $this->user->cards()->create($cardData);
+                $card = $this->user->cards()->create([
+                    'front'    => $cardData['front'],
+                    'back'     => $cardData['back'],
+                    'tts'      => $cardData['tts'],
+                    'batch_id' => $this->batch->id,
+                ]);
+
                 GenerateTts::dispatch($card);
             }
-        } catch (\Exception $e) {
-            Log::error('Error generating flashcards', ['exception' => $e->getMessage()]);
+        } catch (\Throwable $e) {
+            Log::error('Error generating flashcards', ['exception' => $e]);
         }
     }
 }
