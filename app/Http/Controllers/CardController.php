@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Card;
 use Illuminate\Http\Request;
-use App\Jobs\GenerateFlashcards;
+use App\Jobs\GenerateFlashcardsInBulk;
 use App\Jobs\GenerateTts;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Http\Client\ConnectionException;
@@ -26,10 +26,11 @@ class CardController extends Controller
             'name' => 'Batch from ' . now()->format('Y-m-d H:i:s'),
         ]);
 
-        foreach ($words as $word) {
-            $word = trim($word);
-            if (!empty($word)) {
-                GenerateFlashcards::dispatch($word, $user, $batch, $request->prompt_id);
+        $wordChunks = array_chunk(array_filter(array_map('trim', $words)), 20);
+
+        foreach ($wordChunks as $chunk) {
+            if (!empty($chunk)) {
+                GenerateFlashcardsInBulk::dispatch($chunk, $user, $batch, $request->prompt_id);
             }
         }
 
