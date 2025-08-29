@@ -18,6 +18,7 @@
             @auth
                 <a href="{{ route('home') }}" class="text-sm font-medium transition-all duration-300 hover:text-violet-600 {{ request()->routeIs('home') ? 'text-violet-600' : 'text-slate-600' }}">Home</a>
                 <a href="{{ route('prompts.index') }}" class="text-sm font-medium transition-all duration-300 hover:text-violet-600 {{ request()->routeIs('prompts.index') ? 'text-violet-600' : 'text-slate-600' }}">Prompts</a>
+                <a href="{{ route('tutorial') }}" class="text-sm font-medium transition-all duration-300 hover:text-violet-600 {{ request()->routeIs('tutorial') ? 'text-violet-600' : 'text-slate-600' }}">Tutorial</a>
                 <a href="{{ route('settings') }}" class="text-sm font-medium transition-all duration-300 hover:text-violet-600 {{ request()->routeIs('settings') ? 'text-violet-600' : 'text-slate-600' }}">Settings</a>
                 <form method="POST" action="{{ route('logout') }}" class="inline">
                     @csrf
@@ -26,6 +27,7 @@
             @else
                 <a href="{{ route('home') }}" class="text-sm font-medium transition-all duration-300 hover:text-violet-600 {{ request()->routeIs('home') ? 'text-violet-600' : 'text-slate-600' }}">Home</a>
                 <a href="{{ route('about') }}" class="text-sm font-medium transition-all duration-300 hover:text-violet-600 {{ request()->routeIs('about') ? 'text-violet-600' : 'text-slate-600' }}">About</a>
+                <a href="{{ route('tutorial') }}" class="text-sm font-medium transition-all duration-300 hover:text-violet-600 {{ request()->routeIs('tutorial') ? 'text-violet-600' : 'text-slate-600' }}">Tutorial</a>
                 <a href="{{ route('login') }}" class="text-sm font-medium transition-all duration-300 hover:text-violet-600 text-slate-600">Login</a>
                 <a href="{{ route('register') }}" class="text-sm font-medium transition-all duration-300 hover:text-violet-600 text-slate-600">Register</a>
             @endauth
