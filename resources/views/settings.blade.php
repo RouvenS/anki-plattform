@@ -1,27 +1,38 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="flex justify-center">
-    <div class="w-full max-w-xs">
-        @if (session('success'))
-            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
-                {{ session('success') }}
-            </div>
-        @endif
-        <form class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4" method="POST" action="{{ route('settings.store') }}">
-            @csrf
-            <div class="mb-4">
-                <label class="block text-gray-700 text-sm font-bold mb-2" for="openai_api_key">
-                    OpenAI API Key
-                </label>
-                <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="openai_api_key" type="text" name="openai_api_key" placeholder="OpenAI API Key" value="{{ $user->openai_api_key }}">
-            </div>
-            <div class="flex items-center justify-between">
-                <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
-                    Save
-                </button>
-            </div>
-        </form>
+<div class="max-w-md mx-auto">
+    <div class="relative group">
+        <div class="absolute inset-0 bg-gradient-to-r from-violet-600 to-indigo-600 rounded-3xl blur-xl opacity-20 group-hover:opacity-30 transition-opacity duration-300"></div>
+        <div class="card-glass">
+            <h2 class="text-3xl font-bold text-center mb-8 heading-gradient">Settings</h2>
+
+            @if (session('success'))
+                <div class="alert-green mb-6">
+                    <div>
+                        <p class="font-medium">Success!</p>
+                        <p class="text-xs mt-1">{{ session('success') }}</p>
+                    </div>
+                </div>
+            @endif
+
+            <form method="POST" action="{{ route('settings.store') }}" class="space-y-6">
+                @csrf
+                <div>
+                    <label for="openai_api_key" class="block text-sm font-medium text-slate-700 mb-2">OpenAI API Key</label>
+                    <input id="openai_api_key" name="openai_api_key" type="password"
+                           class="w-full rounded-xl border border-slate-200 bg-white/70 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500/40"
+                           placeholder="sk-..."
+                           value="{{ $user->openai_api_key }}">
+                </div>
+
+                <div class="flex justify-end">
+                    <button type="submit" class="btn-primary">
+                        Save Settings
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 @endsection

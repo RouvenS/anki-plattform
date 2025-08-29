@@ -1,37 +1,33 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container mx-auto">
-    <h1 class="text-2xl font-bold mb-4">Create Prompt</h1>
+<div class="max-w-2xl mx-auto">
+    <h1 class="text-4xl font-bold text-center mb-8 heading-gradient">Create Prompt</h1>
 
-    <form action="{{ route('prompts.store') }}" method="POST">
-        @csrf
-        <div class="shadow sm:rounded-md sm:overflow-hidden">
-            <div class="px-4 py-5 bg-white space-y-6 sm:p-6">
-                <div>
-                    <label for="name" class="block text-sm font-medium text-gray-700">Name</label>
-                    <input type="text" name="name" id="name" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" value="{{ old('name') }}">
-                    @error('name')
-                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
+    <div class="card-glass">
+        <form action="{{ route('prompts.store') }}" method="POST" class="space-y-6">
+            @csrf
+            <div>
+                <label for="name" class="block text-sm font-medium text-slate-700 mb-2">Name</label>
+                <input type="text" name="name" id="name" class="w-full rounded-xl border border-slate-200 bg-white/70 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500/40" value="{{ old('name') }}">
+                @error('name')
+                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                @enderror
+            </div>
 
-                <div>
-                    <label for="prompt" class="block text-sm font-medium text-gray-700">Prompt</label>
-                    <div class="mt-1">
-                        <textarea id="prompt" name="prompt" rows="10" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 mt-1 block w-full sm:text-sm border border-gray-300 rounded-md">{{ old('prompt') }}</textarea>
-                    </div>
-                    @error('prompt')
-                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
+            <div>
+                <label for="prompt" class="block text-sm font-medium text-slate-700 mb-2">Prompt</label>
+                <textarea id="prompt" name="prompt" rows="10" class="w-full rounded-xl border border-slate-200 bg-white/70 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500/40">{{ old('prompt') }}</textarea>
+                @error('prompt')
+                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                @enderror
             </div>
-            <div class="px-4 py-3 bg-gray-50 text-right sm:px-6">
-                <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                    Save
-                </button>
+
+            <div class="flex justify-end gap-4">
+                <a href="{{ route('prompts.index') }}" class="btn-secondary">Cancel</a>
+                <button type="submit" class="btn-primary">Save</button>
             </div>
-        </div>
-    </form>
+        </form>
+    </div>
 </div>
 @endsection
