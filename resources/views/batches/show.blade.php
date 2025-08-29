@@ -80,7 +80,7 @@
                                     @if ($card->audio_path)
                                         <div class="custom-audio-player">
                                             <audio src="{{ Storage::url($card->audio_path) }}" preload="none"></audio>
-                                            <button class="play-pause-btn btn-ghost">
+                                            <button type="button" class="play-pause-btn btn-ghost">
                                                 <svg class="play-icon h-6 w-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
                                                 <svg class="pause-icon hidden h-6 w-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
                                             </button>
