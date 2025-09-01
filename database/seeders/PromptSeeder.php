@@ -67,20 +67,17 @@ POS-SPECIFIC INSTRUCTIONS
 5) OTHERS (prepositions, conjunctions, pronouns, numerals, particles, set phrases)
    - One concise card with a clear, typical example.
 
-OUTPUT FORMAT (IMPORTANT)
-- Return ONLY a JSON ARRAY of objects like:
-  [
-    {"front": "...", "back": "...", "tts": "..."},
-    ...
-  ]
+OUTPUT
+Return a JSON object with a single key "cards".
+"cards" is an array (usually 1–3) where each item has exactly:
+- front: string
+- back: string (three lines with \n)
+- tts:  string (Russian only: "<target_form>. <example_ru>")
 
 INPUT
 - I will supply one Russian–English pair (optionally with brief context).
 - Create cards for that ONE lexeme, following the rules above.
 
-VALIDATION
-- Do not include any keys other than "front", "back", "tts".
-- Do not add markdown/code fences in the output.
 EOT;
 
         Prompt::create([
