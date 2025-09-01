@@ -16,7 +16,7 @@ class BatchController extends Controller
     public function show(Batch $batch)
     {
         $this->authorize('view', $batch);
-        $cards = $batch->cards()->paginate(10);
+        $cards = $batch->cards()->paginate(100);
 
         $decks = [];
         try {
