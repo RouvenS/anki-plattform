@@ -146,6 +146,7 @@ try - пытаться"
 
 @push('scripts')
 <script>
+document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('scroll-down-btn').addEventListener('click', () => {
         window.scrollBy({
             top: window.innerHeight / 2,
@@ -205,5 +206,19 @@ try - пытаться"
             }, 5000);
         });
     }
+
+    const promptSelect = document.getElementById('prompt_id');
+    if (promptSelect) {
+        const savedPrompt = localStorage.getItem('selectedPrompt');
+        if (savedPrompt) {
+            if (promptSelect.querySelector(`option[value="${savedPrompt}"]`)) {
+                promptSelect.value = savedPrompt;
+            }
+        }
+        promptSelect.addEventListener('change', function() {
+            localStorage.setItem('selectedPrompt', this.value);
+        });
+    }
+});
 </script>
 @endpush

@@ -236,7 +236,19 @@
             });
         });
 
-        
+        const deckSelect = document.getElementById('deck');
+        if (deckSelect) {
+            const savedDeck = localStorage.getItem('selectedDeck');
+            if (savedDeck) {
+                const optionExists = Array.from(deckSelect.options).some(opt => opt.value === savedDeck);
+                if (optionExists) {
+                    deckSelect.value = savedDeck;
+                }
+            }
+            deckSelect.addEventListener('change', function() {
+                localStorage.setItem('selectedDeck', this.value);
+            });
+        }
     });
 </script>
 @endpush
