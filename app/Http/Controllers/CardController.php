@@ -58,7 +58,7 @@ class CardController extends Controller
                 'modelName' => 'Basic',
                 'fields' => [
                     'Front' => $card->front,
-                    'Back' => $card->back,
+                    'Back' => nl2br($card->back),
                 ],
             ];
 
