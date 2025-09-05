@@ -8,6 +8,7 @@ use App\Jobs\GenerateFlashcardsInBulk;
 use App\Jobs\GenerateTts;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 class CardController extends Controller
@@ -60,6 +61,9 @@ class CardController extends Controller
                     'Front' => $card->front,
                     'Back' => nl2br($card->back),
                 ],
+                'options' => [
+                    'allowDuplicate' => true,
+                ],
             ];
 
             if ($card->audio_path && Storage::disk('public')->exists($card->audio_path)) {
@@ -77,6 +81,8 @@ class CardController extends Controller
             return $note;
         })->toArray();
 
+        Log::debug('AnkiConnect addNotes request', ['notes' => $notes]);
+
         try {
             $response = Http::timeout(60)->post('http://127.0.0.1:8765', [
                 'action' => 'addNotes',
@@ -86,12 +92,37 @@ class CardController extends Controller
                 ],
             ]);
 
-            if ($response->ok() && $response->json()['error'] === null) {
-                return redirect()->route('batches.show', $request->input('batch_id'))->with('success', 'Cards added to Anki successfully.');
-            } else {
-                return redirect()->route('batches.show', $request->input('batch_id'))->with('error', 'Failed to add cards to Anki: ' . $response->json()['error']);
+            $responseData = $response->json();
+            Log::debug('AnkiConnect addNotes response', ['response' => $responseData]);
+
+            if ($response->failed()) {
+                Log::error('AnkiConnect request failed', ['status' => $response->status(), 'body' => $response->body()]);
+                return redirect()->route('batches.show', $request->input('batch_id'))->with('error', 'AnkiConnect request failed. See logs for details.');
             }
+
+            if (isset($responseData['error']) && $responseData['error'] !== null) {
+                Log::error('AnkiConnect returned an error', ['error' => $responseData['error']]);
+                return redirect()->route('batches.show', $request->input('batch_id'))->with('error', 'Failed to add cards to Anki: ' . $responseData['error']);
+            }
+
+            if (isset($responseData['result'])) {
+                $results = $responseData['result'];
+                $totalCount = count($results);
+                $addedCount = count(array_filter($results, fn ($r) => $r !== null));
+                $duplicateCount = $totalCount - $addedCount;
+
+                if ($duplicateCount > 0) {
+                    $message = "{$addedCount} of {$totalCount} cards added. {$duplicateCount} were duplicates and were not added.";
+                    return redirect()->route('batches.show', $request->input('batch_id'))->with('error', $message);
+                }
+
+                return redirect()->route('batches.show', $request->input('batch_id'))->with('success', 'All cards added to Anki successfully.');
+            }
+
+            Log::error('AnkiConnect response is in an unexpected format', ['response' => $responseData]);
+            return redirect()->route('batches.show', $request->input('batch_id'))->with('error', 'Received an unexpected response from AnkiConnect.');
         } catch (ConnectionException $e) {
+            Log::error('Could not connect to Anki', ['message' => $e->getMessage()]);
             return redirect()->route('batches.show', $request->input('batch_id'))->with('error', 'Could not connect to Anki. Is it running?');
         }
     }
