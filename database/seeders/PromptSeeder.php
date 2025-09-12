@@ -35,7 +35,7 @@ STYLE & QUALITY
 FIELD RULES
 - "front": English cue + minimal hint in parentheses:
   • Verbs: "… — verb (imperf.)" or "… — verb (perf.)"
-  • Nouns: "… — noun" or "… — noun (plural)" for the irregular plural card
+  • Nouns: "… — noun" or "… — noun (plural)" for the irregular plural card, add (m),(f),(n) for gender
   • Adjectives: "… — adjective (positive|compar.|superl.)"
   • Adverbs: "… — adverb" or "(compar.)" if applicable
   • Others: "… — <part of speech>"
