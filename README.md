@@ -1,61 +1,135 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Anki Plattform - Build the Best Vocabulary Ever
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+**Mission:** To create the ultimate vocabulary learning experience by seamlessly integrating with Anki and leveraging the power of AI.
 
-## About Laravel
+**This is a work in progress.** This document outlines the project's vision, current state, and future plans. We are actively seeking contributors to help us achieve our mission.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Vision & Future
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+The long-term vision for the Anki Plattform is to become an indispensable tool for language learners. We want to move beyond simple flashcard generation and create a fully integrated learning ecosystem.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### Key Future Goals:
 
-## Learning Laravel
+*   **Direct Anki Account Management:** Eliminate the need for the AnkiConnect plugin by providing a secure client for each user to manage their Anki account directly from our platform. This will allow for a seamless experience across all devices.
+*   **Automated & Personalized Learning:** Leverage AI to create personalized learning plans for each user. The platform will automatically introduce new vocabulary based on the user's learning goals and progress, and nudge them to study at the optimal time.
+*   **AI-Powered Content Generation:** Go beyond simple translations and provide rich, contextual content for each vocabulary word. This includes example sentences, conjugations, and even entire phrases for specific situations (e.g., "vocabulary for a business dinner").
+*   **Full Card Customization:** Allow users to fully customize their flashcards with additional examples, images, and personal notes.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+For a more detailed breakdown of our future plans, please see our [ROADMAP.md](ROADMAP.md).
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+## Current State & Critical Analysis
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+The Anki Plattform is currently in the **alpha stage**. The core functionality is in place, but there are several areas that need improvement before it is ready for production.
 
-## Laravel Sponsors
+*   **Anki Integration:** The current integration relies on the AnkiConnect plugin, which requires users to have Anki running on their local machine. This is a significant barrier to entry and a major focus for future development.
+*   **Testing:** The project currently lacks a comprehensive test suite. The existing tests are the default Laravel example tests. This is a critical issue that needs to be addressed to ensure the stability and reliability of the application.
+*   **User Experience:** The UI is functional but could be improved to provide a more intuitive and engaging user experience.
+*   **Security:** The application has not yet undergone a formal security audit.
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## Core Features
 
-### Premium Partners
+Despite its early stage, the Anki Plattform already offers several powerful features:
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+*   **AI-Powered Flashcard Generation:** Simply provide a list of vocabulary words, and the platform will use an LLM to generate translations, example sentences, and text-to-speech audio.
+*   **Batch Management:** Organize your flashcards into batches for easy management and export to Anki.
+*   **Customizable Prompts:** Tailor the AI-generated content to your specific needs by creating and saving custom prompts.
 
-## Contributing
+## To-Do List for Production Readiness
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+*   [ ] **Implement direct Anki account management:** This is the highest priority task.
+*   [ ] **Develop a comprehensive test suite:** We need to achieve at least 80% code coverage.
+*   [ ] **Conduct a security audit:** Ensure the application is secure and user data is protected.
+*   [ ] **Improve the user interface:** Redesign the UI to be more user-friendly and intuitive.
+*   [ ] **Implement a robust error handling and logging system.**
+*   [ ] **Create a CI/CD pipeline for automated testing and deployment.**
 
-## Code of Conduct
+We welcome contributions to help us tackle these tasks. Please see our [CONTRIBUTING.md](CONTRIBUTING.md) for more information.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## Installation & Setup (for Development)
 
-## Security Vulnerabilities
+**Note:** This project is not yet ready for production use. The following instructions are for setting up a local development environment.
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### System Requirements
 
-## License
+*   PHP 8.2+
+*   Composer
+*   Node.js & npm
+*   PostgreSQL (or another database of your choice)
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+### Step-by-step Setup Guide
+
+1.  **Clone the repository:**
+
+    ```bash
+    git clone https://github.com/your-username/anki-plattform.git
+    cd anki-plattform
+    ```
+
+2.  **Install dependencies:**
+
+    ```bash
+    composer install
+    npm install
+    ```
+
+3.  **Create your environment file:**
+
+    ```bash
+    cp .env.example .env
+    ```
+
+4.  **Generate an application key:**
+
+    ```bash
+    php artisan key:generate
+    ```
+
+5.  **Configure your `.env` file:**
+
+    *   Set your database credentials.
+    *   Add your `OPENAI_API_KEY`.
+
+6.  **Run database migrations:**
+
+    ```bash
+    php artisan migrate
+    ```
+
+7.  **Build frontend assets:**
+
+    ```bash
+    npm run dev
+    ```
+
+8.  **Run the development server:**
+
+    ```bash
+    php artisan serve
+    ```
+
+## Architecture & Design Patterns
+
+The application follows a standard Laravel MVC architecture. Key design patterns include:
+
+*   **Queued Jobs:** For handling long-running tasks like AI-powered content generation.
+*   **Policies:** For authorization and access control.
+
+## Testing
+
+**Critical Issue:** The project currently lacks a meaningful test suite. The existing tests are the default Laravel examples. We are actively seeking contributors to help us build out our test coverage.
+
+To run the existing tests, you can use the following command:
+
+```bash
+php artisan test
+```
+
+## Deployment
+
+**This project is not yet ready for production deployment.**
+
+## Appendices
+
+### API Documentation
+
+The application's routes are defined in `routes/web.php`. A detailed API documentation will be created as the project matures.
