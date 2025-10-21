@@ -32,17 +32,11 @@
             <div class="md:col-span-2">
                 <label for="deck" class="block text-sm font-medium text-slate-700 mb-2">Anki Deck</label>
                 <select id="deck" name="deck" class="w-full rounded-xl border border-slate-200 bg-white/70 px-3 py-3 focus:outline-none focus:ring-2 focus:ring-violet-500/40">
-                    @if(!empty($decks))
-                        @foreach ($decks as $deck)
-                            <option>{{ $deck }}</option>
-                        @endforeach
-                    @else
-                        <option disabled>Could not connect to Anki. Is it running?</option>
-                    @endif
+                    <option disabled selected>Loading decks...</option>
                 </select>
             </div>
             <div class="flex justify-end">
-                <button type="button" id="add-to-anki-btn" class="btn-primary" @if(empty($decks)) disabled @endif>
+                <button type="button" id="add-to-anki-btn" class="btn-primary" disabled>
                     Add to Anki
                 </button>
             </div>
@@ -225,89 +219,10 @@
             });
         });
 
-        const deckSelect = document.getElementById('deck');
-        if (deckSelect) {
-            const savedDeck = localStorage.getItem('selectedDeck');
-            if (savedDeck) {
-                const optionExists = Array.from(deckSelect.options).some(opt => opt.value === savedDeck);
-                if (optionExists) {
-                    deckSelect.value = savedDeck;
-                }
-            }
-            deckSelect.addEventListener('change', function() {
-                localStorage.setItem('selectedDeck', this.value);
-            });
-        }
-
-        // New AnkiConnect script
+        // AnkiConnect script
         const ankiBtn = document.getElementById('add-to-anki-btn');
         const ankiStatusEl = document.getElementById('anki-status');
-
-        async function addSelectedToAnki(cardIds, deck, batchId) {
-            if (cardIds.length === 0) {
-                showStatus('Please select at least one card.', 'amber');
-                return;
-            }
-
-            ankiBtn.disabled = true;
-            ankiBtn.innerText = 'Adding...';
-            showStatus('Preparing notes...', 'blue');
-
-            try {
-                const response = await fetch('{{ route('anki.notes') }}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                    },
-                    body: JSON.stringify({
-                        cards: cardIds,
-                        deck: deck,
-                        batch_id: batchId
-                    })
-                });
-
-                if (!response.ok) {
-                    throw new Error('Failed to fetch note data from the server.');
-                }
-
-                const { notes } = await response.json();
-                showStatus(`Sending ${notes.length} notes to Anki...`, 'blue');
-
-                const ankiConnectUrls = ['http://127.0.0.1:8765', 'http://localhost:8765'];
-                const ankiConnect = new AnkiConnect(ankiConnectUrls);
-
-                const results = await ankiConnect.addNotesInChunks(notes, 20);
-                const totalCount = results.length;
-                const addedCount = results.filter(r => r !== null).length;
-                const duplicateCount = totalCount - addedCount;
-
-                let message = `${addedCount}/${totalCount} cards added.`;
-                if (duplicateCount > 0) {
-                    message += ` ${duplicateCount} were duplicates.`;
-                }
-                showStatus(message, 'green');
-
-            } catch (error) {
-                console.error('AnkiConnect Error:', error);
-                let errorMessage = 'An error occurred.';
-                if (error.message.includes('Failed to fetch')) {
-                    errorMessage = 'Could not connect to AnkiConnect. Is Anki running with the AnkiConnect add-on installed and configured to allow your domain?';
-                } else {
-                    errorMessage = error.message;
-                }
-                showStatus(errorMessage, 'amber');
-            } finally {
-                ankiBtn.disabled = false;
-                ankiBtn.innerText = 'Add to Anki';
-            }
-        }
-
-        function showStatus(message, type) {
-            ankiStatusEl.innerHTML = `<p>${message}</p>`;
-            ankiStatusEl.className = `alert-${type} mb-6`;
-            ankiStatusEl.classList.remove('hidden');
-        }
+        const deckSelect = document.getElementById('deck');
 
         class AnkiConnect {
             constructor(urls) {
@@ -355,12 +270,107 @@
             }
         }
 
+        async function loadAnkiDecks() {
+            const ankiConnect = new AnkiConnect(['http://127.0.0.1:8765', 'http://localhost:8765']);
+            try {
+                const decks = await ankiConnect.invoke('deckNames', 6);
+                deckSelect.innerHTML = ''; // Clear loading option
+                decks.forEach(deck => {
+                    const option = document.createElement('option');
+                    option.value = deck;
+                    option.textContent = deck;
+                    deckSelect.appendChild(option);
+                });
+                ankiBtn.disabled = false;
+
+                const savedDeck = localStorage.getItem('selectedDeck');
+                if (savedDeck && decks.includes(savedDeck)) {
+                    deckSelect.value = savedDeck;
+                }
+            } catch (error) {
+                console.error('Could not fetch Anki decks:', error);
+                deckSelect.innerHTML = '<option disabled selected>Could not connect to Anki. Is it running?</option>';
+                ankiBtn.disabled = true;
+            }
+        }
+
+        deckSelect.addEventListener('change', function() {
+            localStorage.setItem('selectedDeck', this.value);
+        });
+
+        async function addSelectedToAnki(cardIds, deck, batchId) {
+            if (cardIds.length === 0) {
+                showStatus('Please select at least one card.', 'amber');
+                return;
+            }
+
+            ankiBtn.disabled = true;
+            ankiBtn.innerText = 'Adding...';
+            showStatus('Preparing notes...', 'blue');
+
+            try {
+                const response = await fetch('{{ route('anki.notes') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({
+                        cards: cardIds,
+                        deck: deck,
+                        batch_id: batchId
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch note data from the server.');
+                }
+
+                const { notes } = await response.json();
+                showStatus(`Sending ${notes.length} notes to Anki...`, 'blue');
+
+                const ankiConnect = new AnkiConnect(['http://127.0.0.1:8765', 'http://localhost:8765']);
+                const results = await ankiConnect.addNotesInChunks(notes, 20);
+                const totalCount = results.length;
+                const addedCount = results.filter(r => r !== null).length;
+                const duplicateCount = totalCount - addedCount;
+
+                let message = `${addedCount}/${totalCount} cards added.`;
+                if (duplicateCount > 0) {
+                    message += ` ${duplicateCount} were duplicates.`;
+                }
+                showStatus(message, 'green');
+
+            } catch (error) {
+                console.error('AnkiConnect Error:', error);
+                let errorMessage = 'An error occurred.';
+                if (error.message.includes('Failed to fetch') || error.message.includes('AnkiConnect not found')) {
+                    errorMessage = 'Could not connect to AnkiConnect. Is Anki running with the AnkiConnect add-on installed and configured to allow your domain?';
+                } else {
+                    errorMessage = error.message;
+                }
+                showStatus(errorMessage, 'amber');
+            } finally {
+                ankiBtn.disabled = false;
+                ankiBtn.innerText = 'Add to Anki';
+            }
+        }
+
+        function showStatus(message, type) {
+            ankiStatusEl.innerHTML = `<p>${message}</p>`;
+            ankiStatusEl.className = `alert-${type} mb-6`;
+            ankiStatusEl.classList.remove('hidden');
+        }
+
         ankiBtn.addEventListener('click', () => {
             const selectedCardIds = Array.from(document.querySelectorAll('.card-checkbox:checked')).map(cb => cb.value);
             const deck = document.getElementById('deck').value;
             const batchId = '{{ $batch->id }}';
             addSelectedToAnki(selectedCardIds, deck, batchId);
         });
+
+        // Initial load
+        loadAnkiDecks();
     });
 </script>
 @endpush
