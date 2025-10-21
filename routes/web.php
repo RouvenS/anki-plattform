@@ -60,5 +60,5 @@ Route::middleware('auth')->group(function () {
     Route::resource('cards', CardController::class);
     Route::resource('prompts', PromptController::class);
     Route::post('prompts/{prompt}/duplicate', [PromptController::class, 'duplicate'])->name('prompts.duplicate');
-    Route::post('/cards/add-to-anki', [CardController::class, 'addToAnki'])->name('cards.add-to-anki');
+    Route::post('/anki/notes', [CardController::class, 'buildAnkiNotes'])->name('anki.notes');
 });

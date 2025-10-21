@@ -3,6 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="Content-Security-Policy" content="connect-src 'self' http://127.0.0.1:8765 http://localhost:8765;">
 
     <title>Anki-Vocab</title>
 
