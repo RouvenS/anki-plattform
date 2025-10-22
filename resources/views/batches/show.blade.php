@@ -6,6 +6,25 @@
 
     <div id="error-message" class="hidden alert-amber mb-6"></div>
     <div id="anki-status" class="hidden mb-6"></div>
+
+    <div id="anki-connection-warning" class="alert-amber mb-6 p-4 rounded-lg border border-amber-300 flex items-start hidden">
+        <div class="flex-shrink-0">
+            <svg class="h-6 w-6 text-amber-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+        </div>
+        <div class="ml-3">
+            <h4 class="font-bold text-amber-800">Connection to Anki Failed?</h4>
+            <div class="text-sm text-amber-700 mt-1">
+                <p>Please check the following:</p>
+                <ul class="list-disc list-inside mt-2">
+                    <li>Is Anki running with the AnkiConnect add-on installed? See the <a href="{{ route('tutorial') }}" class="underline font-medium">tutorial</a> for help.</li>
+                    <li>Is your browser blocking the connection? Some browsers (like Brave) have shields or ad-blockers that can interfere. Try disabling them for this site.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
     @if (session('success'))
         <div class="alert-green mb-6">
             <p>{{ session('success') }}</p>
@@ -223,6 +242,7 @@
         const ankiBtn = document.getElementById('add-to-anki-btn');
         const ankiStatusEl = document.getElementById('anki-status');
         const deckSelect = document.getElementById('deck');
+        const ankiWarning = document.getElementById('anki-connection-warning');
 
         class AnkiConnect {
             constructor(urls) {
@@ -274,6 +294,7 @@
             const ankiConnect = new AnkiConnect(['http://127.0.0.1:8765', 'http://localhost:8765']);
             try {
                 const decks = await ankiConnect.invoke('deckNames', 6);
+                ankiWarning.classList.add('hidden');
                 deckSelect.innerHTML = ''; // Clear loading option
                 decks.forEach(deck => {
                     const option = document.createElement('option');
@@ -289,8 +310,9 @@
                 }
             } catch (error) {
                 console.error('Could not fetch Anki decks:', error);
-                deckSelect.innerHTML = '<option disabled selected>Could not connect to Anki. Is it running?</option>';
+                deckSelect.innerHTML = '<option disabled selected>Could not connect to Anki</option>';
                 ankiBtn.disabled = true;
+                ankiWarning.classList.remove('hidden');
             }
         }
 
@@ -306,6 +328,7 @@
 
             ankiBtn.disabled = true;
             ankiBtn.innerText = 'Adding...';
+            ankiWarning.classList.add('hidden');
             showStatus('Preparing notes...', 'blue');
 
             try {
@@ -345,7 +368,8 @@
                 console.error('AnkiConnect Error:', error);
                 let errorMessage = 'An error occurred.';
                 if (error.message.includes('Failed to fetch') || error.message.includes('AnkiConnect not found')) {
-                    errorMessage = 'Could not connect to AnkiConnect. Is Anki running with the AnkiConnect add-on installed and configured to allow your domain?';
+                    errorMessage = 'Could not connect to AnkiConnect.';
+                    ankiWarning.classList.remove('hidden');
                 } else {
                     errorMessage = error.message;
                 }
