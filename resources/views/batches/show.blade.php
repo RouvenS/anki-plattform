@@ -63,7 +63,43 @@
     </div>
 
     <div class="card-glass">
-        <div class="overflow-x-auto">
+        <!-- Mobile view: Card list -->
+        <div class="md:hidden">
+            <div class="divide-y divide-slate-200">
+                @foreach ($cards as $card)
+                    <div class="p-4" data-card-id="{{ $card->id }}">
+                        <div class="flex items-center mb-4">
+                            <input type="checkbox" name="cards[]" value="{{ $card->id }}" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 card-checkbox">
+                            <div class="ml-3">
+                                <div class="text-sm font-medium text-slate-900 editable" data-field="front" contenteditable="true">{{ $card->front }}</div>
+                            </div>
+                        </div>
+                        <div class="space-y-2 text-sm text-slate-800">
+                            <div class="editable" data-field="back" contenteditable="true">{!! nl2br(e($card->back)) !!}</div>
+                            <div class="text-xs text-slate-500 editable" data-field="tts" contenteditable="true">{{ $card->tts }}</div>
+                        </div>
+                        <div class="mt-3 flex justify-between items-center">
+                            @if ($card->audio_path)
+                                <div class="custom-audio-player">
+                                    <audio src="{{ Storage::url($card->audio_path) }}" preload="none"></audio>
+                                    <button type="button" class="play-pause-btn btn-ghost">
+                                        <svg class="play-icon h-6 w-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                                        <svg class="pause-icon hidden h-6 w-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+                                    </button>
+                                </div>
+                            @endif
+                            <div class="space-x-2">
+                                <button type="button" class="hidden save-btn btn-secondary">Save</button>
+                                <button type="button" class="hidden cancel-btn btn-danger">Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+
+        <!-- Desktop view: Table -->
+        <div class="hidden md:block overflow-x-auto">
             <table class="min-w-full">
                 <thead class="border-b border-slate-200">
                     <tr>
@@ -106,7 +142,7 @@
                 </tbody>
             </table>
         </div>
-        <div class="mt-4">
+        <div class="mt-4 px-4 md:px-0">
             {{ $cards->links() }}
         </div>
     </div>
@@ -116,7 +152,75 @@
 @push('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Existing script for audio players, editable fields, etc.
+        // Logic for both mobile and desktop
+        function setupEditable(container) {
+            container.querySelectorAll('.editable').forEach(item => {
+                item.dataset.originalValue = item.innerText;
+                item.addEventListener('input', function(e) {
+                    const cardElement = e.target.closest('[data-card-id]');
+                    cardElement.querySelector('.save-btn').classList.remove('hidden');
+                    cardElement.querySelector('.cancel-btn').classList.remove('hidden');
+                });
+            });
+
+            container.querySelectorAll('.save-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    const cardElement = e.target.closest('[data-card-id]');
+                    const cardId = cardElement.dataset.cardId;
+                    const front = cardElement.querySelector('[data-field="front"]').innerText;
+                    const back = cardElement.querySelector('[data-field="back"]').innerText;
+                    const tts = cardElement.querySelector('[data-field="tts"]').innerText;
+
+                    fetch(`/cards/${cardId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: JSON.stringify({ front, back, tts })
+                    })
+                    .then(response => response.ok ? response.json() : response.json().then(e => Promise.reject(e)))
+                    .then(data => {
+                        if(data.success) {
+                            cardElement.querySelector('.save-btn').classList.add('hidden');
+                            cardElement.querySelector('.cancel-btn').classList.add('hidden');
+                            cardElement.querySelectorAll('.editable').forEach(item => {
+                                item.dataset.originalValue = item.innerText;
+                            });
+                            if (data.audio_path) {
+                                const audioPlayer = cardElement.querySelector('audio');
+                                if (audioPlayer) {
+                                    audioPlayer.src = data.audio_path;
+                                } else {
+                                    // Simplified audio player recreation for now
+                                }
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        const errorMessage = document.getElementById('error-message');
+                        errorMessage.innerText = `Error updating card: ${error.message}`;
+                        errorMessage.classList.remove('hidden');
+                        setTimeout(() => errorMessage.classList.add('hidden'), 5000);
+                    });
+                });
+            });
+
+            container.querySelectorAll('.cancel-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    const cardElement = e.target.closest('[data-card-id]');
+                    cardElement.querySelectorAll('.editable').forEach(item => {
+                        item.innerText = item.dataset.originalValue;
+                    });
+                    cardElement.querySelector('.save-btn').classList.add('hidden');
+                    cardElement.querySelector('.cancel-btn').classList.add('hidden');
+                });
+            });
+        }
+
+        setupEditable(document);
+
         document.querySelectorAll('.custom-audio-player').forEach(player => {
             const audio = player.querySelector('audio');
             const playPauseBtn = player.querySelector('.play-pause-btn');
@@ -125,11 +229,7 @@
 
             playPauseBtn.addEventListener('click', () => {
                 if (audio.paused) {
-                    document.querySelectorAll('audio').forEach(otherAudio => {
-                        if (otherAudio !== audio) {
-                            otherAudio.pause();
-                        }
-                    });
+                    document.querySelectorAll('audio').forEach(a => a.pause());
                     audio.play();
                 } else {
                     audio.pause();
@@ -137,10 +237,8 @@
             });
 
             audio.addEventListener('play', () => {
-                document.querySelectorAll('.custom-audio-player').forEach(p => {
-                    p.querySelector('.play-icon').classList.remove('hidden');
-                    p.querySelector('.pause-icon').classList.add('hidden');
-                });
+                document.querySelectorAll('.custom-audio-player .pause-icon').forEach(i => i.classList.add('hidden'));
+                document.querySelectorAll('.custom-audio-player .play-icon').forEach(i => i.classList.remove('hidden'));
                 playIcon.classList.add('hidden');
                 pauseIcon.classList.remove('hidden');
             });
@@ -159,82 +257,6 @@
         document.getElementById('select-all').addEventListener('click', function(event) {
             document.querySelectorAll('.card-checkbox').forEach(function(checkbox) {
                 checkbox.checked = event.target.checked;
-            });
-        });
-
-        document.querySelectorAll('.editable').forEach(item => {
-            item.dataset.originalValue = item.innerText;
-            item.addEventListener('input', function(e) {
-                const row = e.target.closest('tr');
-                row.querySelector('.save-btn').classList.remove('hidden');
-                row.querySelector('.cancel-btn').classList.remove('hidden');
-            });
-        });
-
-        document.querySelectorAll('.save-btn').forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                const row = e.target.closest('tr');
-                const cardId = row.dataset.cardId;
-                const front = row.querySelector('[data-field="front"]').innerText;
-                const back = row.querySelector('[data-field="back"]').innerText;
-                const tts = row.querySelector('[data-field="tts"]').innerText;
-
-                fetch(`/cards/${cardId}`,
-                {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                    },
-                    body: JSON.stringify({ front, back, tts })
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        return response.json().then(errorData => {
-                            throw new Error(errorData.message || 'An unknown error occurred.');
-                        });
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    if(data.success) {
-                        row.querySelector('.save-btn').classList.add('hidden');
-                        row.querySelector('.cancel-btn').classList.add('hidden');
-                        row.querySelectorAll('.editable').forEach(item => {
-                            item.dataset.originalValue = item.innerText;
-                        });
-                        if (data.audio_path) {
-                            const audioPlayerContainer = row.querySelector('td:nth-child(5)');
-                            let audioPlayer = audioPlayerContainer.querySelector('audio');
-                            if (audioPlayer) {
-                                audioPlayer.src = data.audio_path;
-                            } else {
-                                // Simplified audio player recreation
-                                audioPlayerContainer.innerHTML = `<div class="custom-audio-player">...</div>`; // Re-render or update
-                            }
-                        }
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    const errorMessage = document.getElementById('error-message');
-                    errorMessage.innerText = `Error updating card: ${error.message}`;
-                    errorMessage.classList.remove('hidden');
-                    setTimeout(() => {
-                        errorMessage.classList.add('hidden');
-                    }, 5000);
-                });
-            });
-        });
-
-        document.querySelectorAll('.cancel-btn').forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                const row = e.target.closest('tr');
-                row.querySelectorAll('.editable').forEach(item => {
-                    item.innerText = item.dataset.originalValue;
-                });
-                row.querySelector('.save-btn').classList.add('hidden');
-                row.querySelector('.cancel-btn').classList.add('hidden');
             });
         });
 

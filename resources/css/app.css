@@ -73,3 +73,14 @@
 @layer utilities {
   .blob { @apply absolute rounded-full blur-3xl; }
 }
+
+.nav-link {
+    @apply text-sm font-medium transition-all duration-300 hover:text-violet-600 text-slate-600;
+}
+.nav-link.active {
+    @apply text-violet-600;
+}
+.mobile-menu {
+    @apply absolute top-20 left-0 right-0 bg-white shadow-lg p-5 flex flex-col gap-4;
+    z-index: 999;
+}

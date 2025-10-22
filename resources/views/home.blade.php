@@ -98,19 +98,38 @@ try - пытаться"
     <div id="error-message" class="hidden alert-amber mb-6"></div>
 
     <div class="card-glass">
-        <div class="overflow-x-auto">
+        <!-- Mobile view: Card list -->
+        <div class="md:hidden">
+            <div class="divide-y divide-slate-200">
+                @foreach ($batches as $batch)
+                    <div class="p-4">
+                        <div class="flex justify-between items-start">
+                            <div class="text-sm text-slate-900 font-medium">
+                                <span class="editable-batch-name" data-batch-id="{{ $batch->id }}" contenteditable="true">{{ $batch->name }}</span>
+                            </div>
+                            <div class="text-xs text-slate-500">{{ $batch->created_at->format('Y-m-d H:i') }}</div>
+                        </div>
+                        <div class="mt-3 flex justify-end space-x-2">
+                            <a href="{{ route('batches.show', $batch) }}" class="btn-secondary">View</a>
+                            <form class="inline-block" action="{{ route('batches.destroy', $batch) }}" method="POST" onsubmit="return confirm('Are you sure?');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn-danger">Delete</button>
+                            </form>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+
+        <!-- Desktop view: Table -->
+        <div class="hidden md:block overflow-x-auto">
             <table class="min-w-full">
                 <thead class="border-b border-slate-200">
                     <tr>
-                        <th scope="col" class="px-6 py-3 text-left text-sm font-medium text-slate-500">
-                            Name
-                        </th>
-                        <th scope="col" class="px-6 py-3 text-left text-sm font-medium text-slate-500">
-                            Created At
-                        </th>
-                        <th scope="col" class="relative px-6 py-3">
-                            <span class="sr-only">Actions</span>
-                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-sm font-medium text-slate-500">Name</th>
+                        <th scope="col" class="px-6 py-3 text-left text-sm font-medium text-slate-500">Created At</th>
+                        <th scope="col" class="relative px-6 py-3"><span class="sr-only">Actions</span></th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-200">
@@ -137,7 +156,8 @@ try - пытаться"
                 </tbody>
             </table>
         </div>
-        <div class="mt-4">
+
+        <div class="mt-4 px-4 md:px-0">
             {{ $batches->links() }}
         </div>
     </div>
