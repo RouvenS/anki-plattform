@@ -23,9 +23,11 @@ class CardController extends Controller
         $words = explode("\n", $request->vocabulary);
         $user = $request->user();
 
-        $batch = $user->batches()->create([
-            'name' => 'Batch from ' . now()->format('Y-m-d H:i:s'),
+        $batch = Batch::create([
+            'user_id' => $user->id,
+            'name' => 'Batch',
         ]);
+        $batch->update(['name' => 'Batch' . $batch->id]);
 
         $wordChunks = array_chunk(array_filter(array_map('trim', $words)), 20);
 
