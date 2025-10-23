@@ -149,4 +149,28 @@
             </p>
         </div>
     </div>
+
+    {{-- CTA Footer --}}
+    <div class="text-center mt-24">
+        <h2 class="text-3xl font-semibold mb-4">Ready to supercharge your language learning?</h2>
+        <p class="text-lg text-slate-600 mb-8">Join now — it’s free during beta.</p>
+        <div class="flex justify-center items-center space-x-4">
+        <a href="{{ route('register') }}" class="btn-primary">
+            Register
+        </a>
+        <a href="{{ route('login') }}" class="btn-secondary">
+            Login
+        </a>
+        </div>
+    </div>
+
+    {{-- Telegram Link --}}
+    <div class="text-center mt-12">
+        <a href="https://telegram.org" target="_blank" class="btn-grey">
+        <svg class="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M9.78 18.65l.28-4.23l7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3L3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.28 1.28.2 1.02.94l-2.54 12.04c-.24.94-.85 1.15-1.6.71l-4.32-3.22-2.05 1.98c-.21.21-.39.39-.7.39z"/>
+        </svg>
+        Get Support on Telegram
+        </a>
+    </div>
 @endsection
