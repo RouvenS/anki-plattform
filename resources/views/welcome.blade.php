@@ -2,9 +2,12 @@
 
 @section('content')
   {{-- Hero Section --}}
-  <div class="text-center mb-16">
-    <h1 class="text-5xl md:text-6xl font-bold mb-6 heading-gradient">Stop wasting hours making flashcards. Instantly generate perfect Anki decks with translations, audio, and context for any language.</h1>
-    <p class="text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed">
+  <div class="text-center mb-8">
+    <h1 class="text-4xl md:text-5xl font-bold mb-6 heading-gradient pb-2">
+        Stop wasting hours making flashcards.<br>
+        Instantly generate perfect Anki decks with translations, audio, and context — for any language.
+    </h1>
+    <p class="text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed mt-6">
       Focus on learning — let our AI handle the flashcard creation.
     </p>
     <div class="mt-8 flex justify-center items-center space-x-4">
@@ -15,15 +18,13 @@
         View Tutorial
       </a>
     </div>
-  </div>
-
-  {{-- Social Proof --}}
-  <div class="text-center mb-24">
-    <p class="text-lg text-slate-600">
-      💡 Already <strong>{{ number_format($totalCards) }}+</strong> cards created by early users!
-      <br>
-      Join now and help shape the smartest vocabulary generator.
-    </p>
+    {{-- Social Proof --}}
+    <div class="mt-8">
+        <p class="text-lg text-slate-600">
+            💡 <strong>{{ number_format($totalCards) }}+</strong> cards already created by early users.
+            Join now and help shape the smartest vocab generator.
+        </p>
+    </div>
   </div>
 
   {{-- How it works Section --}}
@@ -68,13 +69,12 @@
     </div>
   </div>
 
-  {{-- Telegram Link --}}
   <div class="text-center mt-12">
-    <a href="https://telegram.org" target="_blank" class="inline-flex items-center text-slate-600 hover:text-slate-800">
+    <a href="https://telegram.org" target="_blank" class="btn-grey">
       <svg class="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 24 24">
         <path d="M9.78 18.65l.28-4.23l7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3L3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.28 1.28.2 1.02.94l-2.54 12.04c-.24.94-.85 1.15-1.6.71l-4.32-3.22-2.05 1.98c-.21.21-.39.39-.7.39z"/>
       </svg>
-      👋 Join our early learners community.
+      Get Support on Telegram
     </a>
   </div>
 @endsection
