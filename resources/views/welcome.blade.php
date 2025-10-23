@@ -4,7 +4,9 @@
   <div class="text-center mb-16">
     <h1 class="text-5xl md:text-6xl font-bold mb-6 heading-gradient">Welcome to Anki-Plattform</h1>
     <p class="text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed">
-      The best way to learn a new language. Create intelligent flash cards from vocabulary lists.
+      This App helped to create <strong>{{ number_format($totalCards) }}</strong> Vocabulary Cards already. <br>
+      Be part of the community and help to make this number grow.
+
     </p>
   </div>
 

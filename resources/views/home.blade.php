@@ -5,8 +5,8 @@
   <div class="text-center mb-16">
     <h1 class="text-5xl md:text-6xl font-bold mb-6 heading-gradient">Create Flash Cards</h1>
     <p class="text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed">
-      Transform your vocabulary list into intelligent flash cards.
-      Simply paste your words below and we’ll generate definitions, examples, and more.
+      Thank you for already creating <strong>{{ number_format($userCardCount) }}</strong> vocab cards.
+
     </p>
     <div class="mt-8">
         <button id="scroll-down-btn" class="btn-secondary">
