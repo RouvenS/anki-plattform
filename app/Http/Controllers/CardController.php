@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Card;
+use App\Models\Batch;
 use Illuminate\Http\Request;
 use App\Jobs\GenerateFlashcardsInBulk;
 use App\Jobs\GenerateTts;
