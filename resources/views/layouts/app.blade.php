@@ -10,6 +10,12 @@
     {{-- Modern, clean font similar to your React look --}}
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
+    <!-- Animate.css v4 (prefixed classes) -->
+    <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"
+    integrity="sha512-V9AnG4tYgCqvXn1L3H9YHc7R9BghadgZ8q2o9g7l3oA1Yc9T7lcY1yqk3I9Sm5n7y3j6oM6R2H1KQJQ2M9Q8Ww=="
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
   </head>
   <body class="page-bg" style="font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial;">

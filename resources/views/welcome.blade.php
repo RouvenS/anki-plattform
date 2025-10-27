@@ -3,6 +3,11 @@
 @section('content')
   {{-- Hero Section --}}
   <div class="text-center mb-8">
+    <div class="my-8 flex justify-center items-center space-x-4 text-4xl md:text-5xl">
+        <div id="visitor-flag" role="img" aria-label="German flag" class="animate__animated animate__shakeX animate__infinite animate__slower">🇩🇪</div>
+        <div role="img" aria-label="Right arrow" class="animate__animated animate__shakeX animate__infinite animate__slower">👉</div>
+        <div id="target-language-flag" role="img" aria-label="Rotating flags" class="animate__animated animate__shakeX animate__slower">🇬🇧</div>
+    </div>
     <h1 class="text-4xl md:text-5xl font-bold mb-6 heading-gradient pb-2">
         Stop wasting hours making flashcards.<br>
         Instantly generate perfect Anki decks with translations, audio, and context — for any language.
@@ -78,3 +83,25 @@
     </a>
   </div>
 @endsection
+
+@push('scripts')
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const flags = ['🇬🇧', '🇫🇷', '🇪🇸', '🇮🇹', '🇵🇱', '🇺🇦', '🇷🇺', '🇯🇵', '🇨🇳', '🇰🇷'];
+    const targetFlag = document.getElementById('target-language-flag');
+    let currentIndex = 0;
+
+    function changeFlag() {
+      currentIndex = (currentIndex + 1) % flags.length;
+      targetFlag.textContent = flags[currentIndex];
+      
+      // Re-trigger the animation
+      targetFlag.classList.remove('animate__shakeX');
+      void targetFlag.offsetWidth; // Trigger a reflow
+      targetFlag.classList.add('animate__shakeX');
+    }
+
+    setInterval(changeFlag, 2000); // Change flag every 2 seconds
+  });
+</script>
+@endpush
