@@ -102,6 +102,24 @@
     }
 
     setInterval(changeFlag, 2000); // Change flag every 2 seconds
+
+    const languageToFlag = {
+        'en': '🇺🇸',
+        'en-US': '🇺🇸',
+        'en-GB': '🇬🇧',
+        'de': '🇩🇪',
+        'fr': '🇫🇷',
+        'es': '🇪🇸',
+        'it': '🇮🇹',
+        'pl': '🇵🇱', 
+        'ua': '🇺🇦',
+    };
+
+    const userLang = navigator.language || navigator.userLanguage;
+    const visitorFlag = document.getElementById('visitor-flag');
+    if (languageToFlag[userLang]) {
+        visitorFlag.textContent = languageToFlag[userLang];
+    }
   });
 </script>
 @endpush
