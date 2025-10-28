@@ -13,8 +13,7 @@
     </div>
 
     <h1 class="text-4xl md:text-5xl font-bold mb-6 heading-gradient pb-2">
-        Stop wasting hours making flashcards.<br>
-        Instantly generate perfect Anki decks with translations, audio, and context — for any language.
+        Instantly generate perfect Anki decks with translations, audio, and context for any language.
     </h1>
     <p class="text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed mt-6">
       Focus on learning — let our AI handle the flashcard creation.
