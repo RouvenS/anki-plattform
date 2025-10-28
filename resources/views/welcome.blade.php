@@ -3,6 +3,10 @@
 @section('content')
   {{-- Hero Section --}}
   <div class="text-center mb-8">
+    <h1 class="text-4xl md:text-5xl font-bold mb-6 heading-gradient pb-2">
+        Instantly generate perfect Anki decks with translations, audio, and context for any language.
+    </h1>
+
     <div class="my-8 flex justify-center items-center space-x-4 text-4xl md:text-5xl">
         <div id="visitor-flag" role="img" aria-label="Visitor flag">🇩🇪</div>
 
@@ -12,9 +16,6 @@
         <div id="target-language-flag" role="img" aria-label="Rotating flags" class="inline-block">🇬🇧</div>
     </div>
 
-    <h1 class="text-4xl md:text-5xl font-bold mb-6 heading-gradient pb-2">
-        Instantly generate perfect Anki decks with translations, audio, and context for any language.
-    </h1>
     <p class="text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed mt-6">
       Focus on learning — let our AI handle the flashcard creation.
     </p>
@@ -101,8 +102,8 @@
       80%  { transform: translateY(0)      scale(0.7); opacity: 0.7; }
       100% { transform: scale(1); opacity: 1; }
   }
-  .animate-back-out-down { animation: backOutDown 0.9s forwards; }
-  .animate-back-in-down  { animation: backInDown  0.9s forwards; }
+  .animate-back-out-down { animation: backOutDown 1.2s forwards; }
+  .animate-back-in-down  { animation: backInDown  1.2s forwards; }
 </style>
 
 <script>
@@ -166,7 +167,7 @@
 
     let idx = 0;
     let lastSeeker = null;
-    const dwellMs = 1000;
+    const dwellMs = 1100;
 
     async function cycle() {
       if (reduced) {
@@ -189,7 +190,7 @@
       // ATTENTION (Animate.css)
       const seeker = pickNextDifferent(seekers, lastSeeker);
       lastSeeker = seeker;
-      await animateOnce(target, ['animate__animated', `animate__${seeker}`, 'animate__faster']);
+      await animateOnce(target, ['animate__animated', `animate__${seeker}`]);
 
       setTimeout(cycle, dwellMs);
     }
@@ -200,7 +201,7 @@
         await animateOnce(target, 'animate-back-in-down');
         const firstSeeker = pickNextDifferent(seekers, null);
         lastSeeker = firstSeeker;
-        await animateOnce(target, ['animate__animated', `animate__${firstSeeker}`, 'animate__faster']);
+        await animateOnce(target, ['animate__animated', `animate__${firstSeeker}`]);
       }
       setTimeout(cycle, dwellMs);
     })();
