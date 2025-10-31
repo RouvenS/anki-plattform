@@ -8,12 +8,12 @@
     </h1>
 
     <div class="my-8 flex justify-center items-center space-x-4 text-4xl md:text-5xl">
-        <div id="visitor-flag" role="img" aria-label="Visitor flag">🇩🇪</div>
+        <div id="visitor-flag" role="img" aria-label="Visitor flag"></div>
 
-        <div role="img" aria-label="Right arrow">👉</div>
+        <div id="arrow-emoji" role="img" aria-label="Right arrow"></div>
 
         {{-- Target flag (JS controls animations) --}}
-        <div id="target-language-flag" role="img" aria-label="Rotating flags" class="inline-block">🇬🇧</div>
+        <div id="target-language-flag" role="img" aria-label="Rotating flags" class="inline-block"></div>
     </div>
 
     <p class="text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed mt-6">
@@ -31,7 +31,7 @@
     {{-- Social Proof --}}
     <div class="mt-8">
         <p class="text-lg text-slate-600">
-            💡 <strong>{{ number_format($totalCards) }}+</strong> cards already created by early users.
+            <span id="bulb-emoji-1"></span> <strong>{{ number_format($totalCards) }}+</strong> cards already created by early users.
             Join now and help shape the smartest vocab generator.
         </p>
     </div>
@@ -42,26 +42,26 @@
     <h2 class="text-3xl font-semibold mb-8 text-center">How It Works</h2>
     <div class="grid md:grid-cols-3 gap-8">
       <div class="p-6 bg-white bg-opacity-70 rounded-lg shadow-md hover:shadow-lg transition-shadow">
-        <h3 class="text-xl font-semibold mb-4">1️⃣ Import Vocabulary</h3>
+        <h3 class="text-xl font-semibold mb-4"><span id="emoji-1"></span> Import Vocabulary</h3>
         <p class="text-slate-700">
           Add your new words and choose the target language. Press Generate — our AI takes care of the rest.
         </p>
       </div>
       <div class="p-6 bg-white bg-opacity-70 rounded-lg shadow-md hover:shadow-lg transition-shadow">
-        <h3 class="text-xl font-semibold mb-4">2️⃣ Generate Flashcards</h3>
+        <h3 class="text-xl font-semibold mb-4"><span id="emoji-2"></span> Generate Flashcards</h3>
         <p class="text-slate-700">
           Automatically create cards with gender hints, example sentences, and native-sounding audio for both the word and sentence.
         </p>
       </div>
       <div class="p-6 bg-white bg-opacity-70 rounded-lg shadow-md hover:shadow-lg transition-shadow">
-        <h3 class="text-xl font-semibold mb-4">3️⃣ Start Learning</h3>
+        <h3 class="text-xl font-semibold mb-4"><span id="emoji-3"></span> Start Learning</h3>
         <p class="text-slate-700">
           Review, tweak, and export directly to your Anki deck — your new cards are ready to learn in seconds.
         </p>
       </div>
     </div>
     <p class="text-center text-lg text-slate-600 mt-8">
-      💡 It’s that simple: generate → review → export.
+      <span id="bulb-emoji-2"></span> It’s that simple: generate → review → export.
     </p>
   </div>
 
@@ -108,7 +108,41 @@
 
 <script>
   document.addEventListener('DOMContentLoaded', function () {
-    // Ensure Animate.css is available (safe to inject even if already present)
+    const isWindows = navigator.platform.indexOf('Win') > -1;
+
+    function toTwemojiCodepoint(emoji) {
+        if (!emoji) return '';
+        // Twemoji uses lowercase hex codepoints joined by a hyphen
+        return [...emoji].map(char => char.codePointAt(0).toString(16)).join('-');
+    }
+
+    function setEmoji(element, emoji, options = {}) {
+        if (!element) return;
+
+        const {
+            sizeClass = 'h-12 w-12', // Default for flags
+            alt = emoji,
+            title = emoji
+        } = options;
+
+        if (isWindows) {
+            element.innerHTML = `<img src="https://twemoji.maxcdn.com/v/latest/svg/${toTwemojiCodepoint(emoji)}.svg" 
+                                      alt="${alt}" title="${title}" 
+                                      class="inline-block align-middle ${sizeClass}">`;
+        } else {
+            element.textContent = emoji;
+        }
+    }
+
+    // --- Static Emojis ---
+    setEmoji(document.getElementById('arrow-emoji'), '👉', { sizeClass: 'h-12 w-12 md:h-14 md:w-14' });
+    setEmoji(document.getElementById('bulb-emoji-1'), '💡', { sizeClass: 'h-6 w-6 mr-1' });
+    setEmoji(document.getElementById('bulb-emoji-2'), '💡', { sizeClass: 'h-6 w-6 mr-1' });
+    setEmoji(document.getElementById('emoji-1'), '1️⃣', { sizeClass: 'h-7 w-7 mr-2' });
+    setEmoji(document.getElementById('emoji-2'), '2️⃣', { sizeClass: 'h-7 w-7 mr-2' });
+    setEmoji(document.getElementById('emoji-3'), '3️⃣', { sizeClass: 'h-7 w-7 mr-2' });
+
+    // --- Dynamic Flags ---
     (function ensureAnimateCSS(){
       const has = Array.from(document.styleSheets).some(s => (s.href||'').includes('animate.min.css'));
       if (!has) {
@@ -121,14 +155,11 @@
     })();
 
     const target = document.getElementById('target-language-flag');
-    target.style.display = 'inline-block'; // don't animate inline elements
+    target.style.display = 'inline-block';
 
     const flags = ['🇬🇧','🇫🇷','🇪🇸','🇮🇹','🇵🇱','🇺🇦','🇵🇹','🇷🇺','🇯🇵','🇨🇳','🇰🇷'];
-
-    // attention-seekers (randomized, no immediate repeats)
     const seekers = ['bounce','flash','pulse','rubberBand','shakeX','shakeY','headShake','swing','tada','wobble','jello','heartBeat'];
 
-    // Visitor flag from browser language
     const languageToFlag = {
       'en':'🇺🇸','en-US':'🇺🇸','en-GB':'🇬🇧',
       'de':'🇩🇪','fr':'🇫🇷','es':'🇪🇸','it':'🇮🇹',
@@ -137,15 +168,14 @@
     };
     const visitorFlag = document.getElementById('visitor-flag');
     const userLang = (navigator.language || navigator.userLanguage || 'de').trim();
-    visitorFlag.textContent = languageToFlag[userLang] || languageToFlag[userLang.split('-')[0]] || '🇩🇪';
+    const visitorEmoji = languageToFlag[userLang] || languageToFlag[userLang.split('-')[0]] || '🇩🇪';
+    setEmoji(visitorFlag, visitorEmoji, { sizeClass: 'h-12 w-12 md:h-14 md:w-14' });
 
     const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    // helper: animate with given classes, then clean up
     function animateOnce(el, classes) {
       return new Promise(resolve => {
         const toAdd = Array.isArray(classes) ? classes : [classes];
-        // force reflow so re-adding classes retriggers
         void el.offsetWidth;
         el.classList.add(...toAdd);
         function onEnd(e){
@@ -172,22 +202,16 @@
     async function cycle() {
       if (reduced) {
         idx = (idx + 1) % flags.length;
-        target.textContent = flags[idx];
+        setEmoji(target, flags[idx], { sizeClass: 'h-12 w-12 md:h-14 md:w-14' });
         setTimeout(cycle, dwellMs);
         return;
       }
 
-      // EXIT (custom, reliable)
       await animateOnce(target, 'animate-back-out-down');
-
-      // SWAP flag
       idx = (idx + 1) % flags.length;
-      target.textContent = flags[idx];
-
-      // ENTER (custom, reliable)
+      setEmoji(target, flags[idx], { sizeClass: 'h-12 w-12 md:h-14 md:w-14' });
       await animateOnce(target, 'animate-back-in-down');
 
-      // ATTENTION (Animate.css)
       const seeker = pickNextDifferent(seekers, lastSeeker);
       lastSeeker = seeker;
       await animateOnce(target, ['animate__animated', `animate__${seeker}`]);
@@ -195,8 +219,10 @@
       setTimeout(cycle, dwellMs);
     }
 
-    // initial enter + attention so it feels alive on first paint
     (async () => {
+      const initialFlag = flags[0]; // Start with the first flag in the list
+      setEmoji(target, initialFlag, { sizeClass: 'h-12 w-12 md:h-14 md:w-14' });
+
       if (!reduced) {
         await animateOnce(target, 'animate-back-in-down');
         const firstSeeker = pickNextDifferent(seekers, null);
