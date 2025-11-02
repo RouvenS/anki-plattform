@@ -54,6 +54,9 @@ Route::get('/tutorial', function () {
 Route::middleware('auth')->group(function () {
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings');
     Route::post('/settings', [SettingsController::class, 'store'])->name('settings.store');
+    Route::patch('/settings/profile', [SettingsController::class, 'updateProfile'])->name('settings.profile.update');
+    Route::patch('/settings/password', [SettingsController::class, 'updatePassword'])->name('settings.password.update');
+    Route::delete('/settings', [SettingsController::class, 'destroy'])->name('settings.destroy');
 
     Route::post('/cards', [CardController::class, 'store'])->name('cards.store');
     Route::resource('batches', BatchController::class)->except(['index']);
