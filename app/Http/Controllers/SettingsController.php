@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
 class SettingsController extends Controller
 {
@@ -15,8 +14,13 @@ class SettingsController extends Controller
         $appUrl = config('app.url');
 
         $corsOrigins = ['http://localhost'];
-        if ($appUrl && $appUrl !== 'http://localhost') {
-            $corsOrigins[] = $appUrl;
+
+        if ($appUrl) {
+            $normalizedAppUrl = filter_var($appUrl, FILTER_VALIDATE_URL) ? rtrim($appUrl, '/') : null;
+
+            if ($normalizedAppUrl && !in_array($normalizedAppUrl, $corsOrigins, true)) {
+                $corsOrigins[] = $normalizedAppUrl;
+            }
         }
 
         $ankiConnectConfig = [
@@ -38,14 +42,18 @@ class SettingsController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'openai_api_key' => 'nullable|string|max:255',
             'anki_api_key' => 'nullable|string|max:255',
         ]);
 
         $user = Auth::user();
-        $user->openai_api_key = $request->openai_api_key;
-        $user->anki_api_key = $request->anki_api_key;
+        $user->openai_api_key = filled($validated['openai_api_key'] ?? null)
+            ? $validated['openai_api_key']
+            : null;
+        $user->anki_api_key = filled($validated['anki_api_key'] ?? null)
+            ? $validated['anki_api_key']
+            : null;
         $user->save();
 
         return redirect()->route('settings')->with('success', 'API keys saved successfully.');
