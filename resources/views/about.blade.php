@@ -12,7 +12,7 @@
     <div class="p-8 rounded-2xl bg-white/50 border border-white/30 shadow-lg">
         <h2 class="text-2xl font-bold mb-4">Our Mission</h2>
         <p class="leading-relaxed">
-            In a world that's more connected than ever, language is the key to unlocking new cultures, friendships, and opportunities. Our mission is to provide language learners with a powerful, easy-to-use tool that leverages cutting-edge AI to create personalized and effective learning experiences. We believe that by automating the tedious parts of vocabulary acquisition, we can help you focus on what truly matters: mastering a new language.
+            In a world that's more connected than ever, language is the key to unlocking new cultures, friendships, and opportunities. Our mission is to provide language learners with a powerful, easy-to-use tool that leverages cutting-edge AI to create personalized and effective learning experiences. We believe that by automating the tedious parts of vocabulary acquisition, we can help you focus on what truly matters: mastering a new language - keywords are important.
         </p>
     </div>
 
