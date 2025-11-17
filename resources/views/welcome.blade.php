@@ -112,8 +112,11 @@
 
     function toTwemojiCodepoint(emoji) {
         if (!emoji) return '';
-        // Twemoji uses lowercase hex codepoints joined by a hyphen
-        return [...emoji].map(char => char.codePointAt(0).toString(16)).join('-');
+        // Twemoji codepoint logic needs to strip variation selectors like U+FE0F for compatibility.
+        return [...emoji]
+            .filter(char => char.codePointAt(0) !== 0xFE0F)
+            .map(char => char.codePointAt(0).toString(16))
+            .join('-');
     }
 
     function setEmoji(element, emoji, options = {}) {
