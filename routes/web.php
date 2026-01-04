@@ -43,7 +43,7 @@ Route::post('/logout', function (Request $request) {
     return redirect('/');
 })->name('logout');
 
-Route::get('/email/verify/{id}', [App\Http\Controllers\VerificationController::class, 'verify'])->name('email.verify');
+Route::get('/email/verify/{id}/{hash}', [App\Http\Controllers\VerificationController::class, 'verify'])->name('email.verify');
 
 Route::get('/email/verify-notice', function () {
     return 'Please check your email to verify your account.';
