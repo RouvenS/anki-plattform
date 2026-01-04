@@ -49,6 +49,10 @@ Route::get('/email/verify-notice', function () {
     return 'Please check your email to verify your account.';
 })->name('verification.notice');
 
+Route::post('/email/verification-notification', [App\Http\Controllers\VerificationController::class, 'resend'])
+    ->middleware(['auth', 'throttle:6,1'])
+    ->name('verification.resend');
+
 Route::get('/about', function () {
     return view('about');
 })->name('about');
