@@ -18,6 +18,12 @@ class VerificationController extends Controller
 
         $user = User::findOrFail($id);
 
+        // Verify that the hash matches the user's email to prevent
+        // one user from verifying another user's email address
+        if (! hash_equals((string) $request->query('hash'), sha1($user->getEmailForVerification()))) {
+            abort(403, 'Invalid verification link.');
+        }
+
         if (! $user->hasVerifiedEmail()) {
             $user->markEmailAsVerified();
         }
@@ -34,7 +40,10 @@ class VerificationController extends Controller
         $url = URL::temporarySignedRoute(
             'email.verify',
             now()->addMinutes(60),
-            ['id' => $request->user()->id]
+            [
+                'id' => $request->user()->id,
+                'hash' => sha1($request->user()->getEmailForVerification())
+            ]
         );
 
         Mail::to($request->user())->send(new VerifyEmail($url));
