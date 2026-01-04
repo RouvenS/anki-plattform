@@ -54,7 +54,7 @@ class EmailVerificationSecurityTest extends TestCase
             now()->addMinutes(60),
             [
                 'id' => $user->id,
-                'hash' => sha1($user->getEmailForVerification())
+                'hash' => hash('sha256', $user->getEmailForVerification())
             ]
         );
 
@@ -88,7 +88,7 @@ class EmailVerificationSecurityTest extends TestCase
             now()->addMinutes(60),
             [
                 'id' => $user2->id,
-                'hash' => sha1($user1->getEmailForVerification())
+                'hash' => hash('sha256', $user1->getEmailForVerification())
             ]
         );
 

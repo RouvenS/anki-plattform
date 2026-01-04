@@ -36,7 +36,7 @@ class RegisterController extends Controller
             now()->addMinutes(60),
             [
                 'id' => $user->id,
-                'hash' => sha1($user->getEmailForVerification())
+                'hash' => hash('sha256', $user->getEmailForVerification())
             ]
         );
 

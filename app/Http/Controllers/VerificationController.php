@@ -20,7 +20,7 @@ class VerificationController extends Controller
 
         // Verify that the hash matches the user's email to prevent
         // one user from verifying another user's email address
-        if (! hash_equals((string) $request->query('hash'), sha1($user->getEmailForVerification()))) {
+        if (! hash_equals((string) $request->query('hash'), hash('sha256', $user->getEmailForVerification()))) {
             abort(403, 'Invalid verification link.');
         }
 
@@ -42,7 +42,7 @@ class VerificationController extends Controller
             now()->addMinutes(60),
             [
                 'id' => $request->user()->id,
-                'hash' => sha1($request->user()->getEmailForVerification())
+                'hash' => hash('sha256', $request->user()->getEmailForVerification())
             ]
         );
 
