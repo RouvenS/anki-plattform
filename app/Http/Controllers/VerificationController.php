@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Auth\Events\Verified;
 use App\Mail\VerifyEmail;
 
 class VerificationController extends Controller
@@ -24,6 +25,7 @@ class VerificationController extends Controller
 
         if (! $user->hasVerifiedEmail()) {
             $user->markEmailAsVerified();
+            event(new Verified($user));
         }
 
         return view('auth.verify-email-success');
