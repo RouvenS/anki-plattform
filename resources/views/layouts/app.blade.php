@@ -17,6 +17,10 @@
     crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    <style>
+      [x-cloak] { display: none !important; }
+    </style>
   </head>
   <body class="page-bg" style="font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial;">
     {{-- Decorative background blobs --}}

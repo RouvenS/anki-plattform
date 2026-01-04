@@ -6,8 +6,32 @@
     <h1 class="text-5xl md:text-6xl font-bold mb-6 heading-gradient">Create Flash Cards</h1>
     <p class="text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed">
       Thank you for already creating <strong>{{ number_format($userCardCount) }}</strong> vocab cards.
-
     </p>
+
+    @unless(auth()->user()->hasVerifiedEmail())
+      <div class="mt-6 flex flex-col items-center">
+        <div class="alert-amber !mt-0 py-2 px-4 shadow-sm inline-flex items-center">
+          <svg class="w-5 h-5 text-amber-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 9v4M12 17h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" />
+          </svg>
+          <span class="text-sm font-medium ml-2">Please confirm your email to use your free credits.</span>
+          <form method="POST" action="{{ route('verification.resend') }}" class="inline ml-3" x-data="{ sending: false }" x-on:submit="sending = true">
+            @csrf
+            <button type="submit" :disabled="sending" class="text-sm font-bold underline hover:text-amber-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+              <span x-show="!sending">Resend email</span>
+              <span x-show="sending" style="display: none;" x-cloak>Sending...</span>
+            </button>
+          </form>
+        </div>
+        
+        @if (session('success') === 'Verification link sent!')
+          <div class="mt-2 text-emerald-600 text-sm font-bold animate__animated animate__fadeIn">
+            Verification link sent!
+          </div>
+        @endif
+      </div>
+    @endunless
+
     <div class="mt-8">
         <button id="scroll-down-btn" class="btn-secondary">
             See your created cards

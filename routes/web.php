@@ -43,6 +43,16 @@ Route::post('/logout', function (Request $request) {
     return redirect('/');
 })->name('logout');
 
+Route::get('/email/verify/{id}/{hash}', [App\Http\Controllers\VerificationController::class, 'verify'])->name('email.verify');
+
+Route::get('/email/verify-notice', function () {
+    return 'Please check your email to verify your account.';
+})->name('verification.notice');
+
+Route::post('/email/verification-notification', [App\Http\Controllers\VerificationController::class, 'resend'])
+    ->middleware(['auth', 'throttle:6,1'])
+    ->name('verification.resend');
+
 Route::get('/about', function () {
     return view('about');
 })->name('about');
@@ -51,7 +61,7 @@ Route::get('/tutorial', function () {
     return view('tutorial');
 })->name('tutorial');
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings');
     Route::post('/settings', [SettingsController::class, 'store'])->name('settings.store');
     Route::patch('/settings/profile', [SettingsController::class, 'updateProfile'])->name('settings.profile.update');
