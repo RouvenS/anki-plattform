@@ -62,9 +62,14 @@
           </div>
 
           <div>
-            <label for="vocabulary" class="block text-sm font-medium text-slate-700 mb-2">
-              Enter your vocabulary words, one per line:
-            </label>
+            <div class="flex justify-between items-center mb-2">
+                <label for="vocabulary" class="block text-sm font-medium text-slate-700">
+                  Enter your vocabulary words, one per line:
+                </label>
+                <p class="text-sm font-medium {{ Auth::user()->free_cards_remaining > 0 ? 'text-emerald-600' : 'text-red-600' }}">
+                    You have {{ Auth::user()->free_cards_remaining }} of {{ $freeCardsTotal }} free cards left
+                </p>
+            </div>
             <textarea id="vocabulary" name="vocabulary" rows="4"
               placeholder="car - машина (optional translation, if you want a specific one) 
 plane - самолёт
@@ -72,13 +77,12 @@ improve - улучшать
 try - пытаться"
               class="min-h-48 text-lg w-full rounded-2xl border-0 bg-transparent resize-y
                      focus:ring-0 placeholder:text-slate-400
-                     shadow-inner px-3 py-3"></textarea>
-          </div>
-
-          @if(Auth::user()?->openai_api_key)
-            <div class="flex items-center justify-end">
-              <button type="submit" class="btn-primary">
-                <span>Generate Cards</span>
+                                           shadow-inner px-3 py-3"></textarea>
+                               </div>
+                     
+                               @if(Auth::user()->free_cards_remaining > 0 || Auth::user()->openai_api_key)
+                                 <div class="flex items-center justify-end">
+                                   <button type="submit" class="btn-primary">                <span>Generate Cards</span>
                 {{-- arrow icon --}}
                 <svg class="w-4 h-4 ml-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M5 12h14" />

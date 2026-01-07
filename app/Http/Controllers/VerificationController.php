@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Auth\Events\Verified;
 use App\Mail\VerifyEmail;
 
+use Illuminate\Support\Facades\Config;
+
 class VerificationController extends Controller
 {
     public function verify(Request $request, $id, $hash)
@@ -24,6 +26,10 @@ class VerificationController extends Controller
         }
 
         if (! $user->hasVerifiedEmail()) {
+            if ($user->free_cards_remaining == 0) {
+                $user->free_cards_remaining = Config::get('trial.free_cards_total', 50);
+                $user->save();
+            }
             $user->markEmailAsVerified();
             event(new Verified($user));
         }

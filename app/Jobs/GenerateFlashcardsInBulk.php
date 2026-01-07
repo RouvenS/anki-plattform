@@ -22,13 +22,15 @@ class GenerateFlashcardsInBulk implements ShouldQueue
     protected User $user;
     protected Batch $batch;
     protected int $promptId;
+    protected string $apiKey;
 
-    public function __construct(array $words, User $user, Batch $batch, int $promptId)
+    public function __construct(array $words, User $user, Batch $batch, int $promptId, string $apiKey)
     {
         $this->words    = $words;
         $this->user     = $user;
         $this->batch    = $batch;
         $this->promptId = $promptId;
+        $this->apiKey   = $apiKey;
     }
 
     public function handle(): void
@@ -81,7 +83,7 @@ class GenerateFlashcardsInBulk implements ShouldQueue
 
         try {
             $resp = Http::timeout(120) // Increased timeout for bulk processing
-                ->withToken($this->user->openai_api_key)
+                ->withToken($this->apiKey)
                 ->post('https://api.openai.com/v1/responses', [
                     'model' => 'gpt-4o-2024-08-06',
                     'input' => [
@@ -158,7 +160,7 @@ class GenerateFlashcardsInBulk implements ShouldQueue
                         'batch_id' => $this->batch->id,
                     ]);
 
-                    GenerateTts::dispatch($card);
+                    GenerateTts::dispatch($card, $this->apiKey);
                 }
             }
         } catch (\Throwable $e) {

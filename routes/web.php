@@ -68,7 +68,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('/settings/password', [SettingsController::class, 'updatePassword'])->name('settings.password.update');
     Route::delete('/settings', [SettingsController::class, 'destroy'])->name('settings.destroy');
 
-    Route::post('/cards', [CardController::class, 'store'])->name('cards.store');
+    Route::post('/cards', [CardController::class, 'store'])->name('cards.store')->middleware('throttle:60,1');
     Route::resource('batches', BatchController::class)->except(['index']);
     Route::resource('cards', CardController::class);
     Route::resource('prompts', PromptController::class);

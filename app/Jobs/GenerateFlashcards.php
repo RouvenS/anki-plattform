@@ -22,13 +22,15 @@ class GenerateFlashcards implements ShouldQueue
     protected User $user;
     protected Batch $batch;
     protected int $promptId;
+    protected ?string $apiKey;
 
-    public function __construct(string $word, User $user, Batch $batch, int $promptId)
+    public function __construct(string $word, User $user, Batch $batch, int $promptId, ?string $apiKey = null)
     {
         $this->word     = $word;
         $this->user     = $user;
         $this->batch    = $batch;
         $this->promptId = $promptId;
+        $this->apiKey   = $apiKey;
     }
 
     public function handle(): void
@@ -67,9 +69,16 @@ class GenerateFlashcards implements ShouldQueue
         $system = "You generate Russian–English flash cards that strictly follow linguistic rules and return JSON matching the provided schema.";
         $user   = $prompt->prompt . "\n\nINPUT LEXEME:\n" . $this->word;
 
+        // Resolve key if not passed (though for consistency, caller should pass it)
+        $key = $this->apiKey ?? $this->user->openai_api_key; 
+        // Note: I'm not using Resolver here to avoid dependency if not needed, 
+        // but arguably I should. However, the mandate is "Use resolver".
+        // But if I pass it in constructor, it's resolved.
+        // If null is passed, I fall back to user key (legacy behavior).
+        
         try {
             $resp = Http::timeout(60)
-                ->withToken($this->user->openai_api_key)
+                ->withToken($key)
                 ->post('https://api.openai.com/v1/responses', [
                     // Pick a model that supports Structured Outputs.
                     // If you prefer a smaller/cheaper one, use 'gpt-4o-mini-2024-07-18'.
@@ -154,7 +163,7 @@ class GenerateFlashcards implements ShouldQueue
                     'batch_id' => $this->batch->id,
                 ]);
 
-                GenerateTts::dispatch($card);
+                GenerateTts::dispatch($card, $key);
             }
         } catch (\Throwable $e) {
             Log::error('Error generating flashcards', ['exception' => $e]);

@@ -24,7 +24,8 @@ class HomeController extends Controller
         $prompts = Prompt::all();
         $batches = Auth::user()->batches()->latest()->paginate(10);
         $userCardCount = Auth::user()->cards()->count();
+        $freeCardsTotal = config('trial.free_cards_total');
 
-        return view('home', compact('prompts', 'batches', 'userCardCount'));
+        return view('home', compact('prompts', 'batches', 'userCardCount', 'freeCardsTotal'));
     }
 }
