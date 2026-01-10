@@ -135,6 +135,20 @@ try - пытаться"
                         <div class="flex justify-between items-start">
                             <div class="text-sm text-slate-900 font-medium">
                                 <span class="editable-batch-name" data-batch-id="{{ $batch->id }}" contenteditable="true">{{ $batch->name }}</span>
+                                <div class="mt-1">
+                                    @if($batch->status === 'failed')
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">Failed</span>
+                                        @if($batch->error_message)
+                                            <p class="text-xs text-red-600 mt-1">{{ $batch->error_message }}</p>
+                                        @endif
+                                    @elseif($batch->status === 'completed')
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">Completed</span>
+                                    @elseif($batch->status === 'processing')
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">Processing</span>
+                                    @else
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">Pending</span>
+                                    @endif
+                                </div>
                             </div>
                             <div class="text-xs text-slate-500">{{ $batch->created_at->format('Y-m-d H:i') }}</div>
                         </div>
@@ -159,6 +173,7 @@ try - пытаться"
                 <thead class="border-b border-slate-200">
                     <tr>
                         <th scope="col" class="px-6 py-3 text-left text-sm font-medium text-slate-500">Name</th>
+                        <th scope="col" class="px-6 py-3 text-left text-sm font-medium text-slate-500">Status</th>
                         <th scope="col" class="px-6 py-3 text-left text-sm font-medium text-slate-500">Created At</th>
                         <th scope="col" class="relative px-6 py-3"><span class="sr-only">Actions</span></th>
                     </tr>
@@ -170,6 +185,20 @@ try - пытаться"
                                 <div class="text-sm text-slate-900">
                                     <span class="editable-batch-name" data-batch-id="{{ $batch->id }}" contenteditable="true">{{ $batch->name }}</span>
                                 </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                @if($batch->status === 'failed')
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800" title="{{ $batch->error_message }}">Failed</span>
+                                    @if($batch->error_message)
+                                        <div class="text-xs text-red-500 mt-1 max-w-xs truncate" title="{{ $batch->error_message }}">{{ $batch->error_message }}</div>
+                                    @endif
+                                @elseif($batch->status === 'completed')
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Completed</span>
+                                @elseif($batch->status === 'processing')
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Processing</span>
+                                @else
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">Pending</span>
+                                @endif
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="text-sm text-slate-900">{{ $batch->created_at->format('Y-m-d H:i:s') }}</div>

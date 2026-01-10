@@ -4,6 +4,48 @@
 <div class="max-w-6xl mx-auto">
     <h1 class="text-4xl font-bold text-center mb-8 heading-gradient">{{ $batch->name }}</h1>
 
+    @if($batch->status === 'failed')
+        <div class="bg-red-50 border-l-4 border-red-400 p-4 mb-6 flex justify-between items-center shadow-sm rounded-r-lg">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm text-red-700 font-bold">
+                        Generation Failed
+                    </p>
+                    <p class="text-sm text-red-700 mt-1">
+                        {{ $batch->error_message }}
+                    </p>
+                </div>
+            </div>
+            <form action="{{ route('batches.retry', $batch) }}" method="POST" class="ml-4 flex-shrink-0">
+                @csrf
+                <button type="submit" class="bg-white text-red-700 px-4 py-2 rounded border border-red-200 hover:bg-red-50 font-medium text-sm transition-colors shadow-sm">
+                    Retry
+                </button>
+            </form>
+        </div>
+    @elseif($batch->status === 'processing')
+        <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6 shadow-sm rounded-r-lg">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-blue-400 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm text-blue-700">
+                        Processing... Cards are being generated. Refresh the page to see updates.
+                    </p>
+                </div>
+            </div>
+        </div>
+    @endif
+
     <div id="error-message" class="hidden alert-amber mb-6"></div>
     <div id="anki-status" class="hidden mb-6"></div>
 

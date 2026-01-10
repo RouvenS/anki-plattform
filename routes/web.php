@@ -69,6 +69,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/settings', [SettingsController::class, 'destroy'])->name('settings.destroy');
 
     Route::post('/cards', [CardController::class, 'store'])->name('cards.store')->middleware('throttle:60,1');
+    Route::post('/batches/{batch}/retry', [BatchController::class, 'retry'])->name('batches.retry');
     Route::resource('batches', BatchController::class)->except(['index']);
     Route::resource('cards', CardController::class);
     Route::resource('prompts', PromptController::class);
