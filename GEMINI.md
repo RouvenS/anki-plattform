@@ -78,7 +78,7 @@ The project follows standard Laravel conventions.
     -   `PromptController`: Manages AI prompts for card generation.
     -   `SettingsController`: User profile and preference management.
 -   **`app/Jobs/`**: Queueable jobs for background processing.
-    -   `GenerateFlashcards`: Handles API calls to OpenAI.
+    -   `GenerateFlashcardsInBulk`: Handles bulk API calls to OpenAI for card generation.
     -   `GenerateTts`: Handles Text-to-Speech generation.
 -   **`resources/views/`**: Blade templates.
     -   `layouts/app.blade.php`: Main application layout.
