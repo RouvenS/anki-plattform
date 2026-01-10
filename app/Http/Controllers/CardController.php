@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Card;
 use App\Models\Batch;
+use App\Models\User;
 use Illuminate\Http\Request;
 use App\Jobs\GenerateFlashcardsInBulk;
 use App\Jobs\GenerateTts;
@@ -11,6 +12,9 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+
+use App\Services\OpenAIKeyResolver;
+use Illuminate\Support\Facades\DB;
 
 class CardController extends Controller
 {
@@ -21,24 +25,131 @@ class CardController extends Controller
             'prompt_id' => 'required|exists:prompts,id',
         ]);
 
-        $words = explode("\n", $request->vocabulary);
+        $words = array_filter(array_map('trim', explode("\n", $request->vocabulary)));
+        $cost = count($words);
+
+        if ($cost === 0) {
+            return back()->withErrors(['vocabulary' => 'Please enter at least one word.']);
+        }
+
         $user = $request->user();
 
-        $batch = Batch::create([
-            'user_id' => $user->id,
-            'name' => 'Batch',
-        ]);
-        $batch->update(['name' => 'Batch' . $batch->id]);
+        // Determine and validate key before transaction
+        $apiKey = null;
+        $isSystemKey = false;
 
-        $wordChunks = array_chunk(array_filter(array_map('trim', $words)), 20);
-
-        foreach ($wordChunks as $chunk) {
-            if (!empty($chunk)) {
-                GenerateFlashcardsInBulk::dispatch($chunk, $user, $batch, $request->prompt_id);
+        if ($user->free_cards_remaining > 0) {
+            $apiKey = \Illuminate\Support\Facades\Config::get('services.openai.key');
+            $isSystemKey = true;
+        } else {
+            if (empty($user->openai_api_key)) {
+                return back()->withErrors(['vocabulary' => "You have no free credits left. Please add your OpenAI API Key in Settings."])->withInput();
             }
+            $apiKey = $user->openai_api_key;
+        }
+
+        try {
+            $this->validateOpenAIKey($apiKey, $isSystemKey);
+        } catch (\DomainException $e) {
+            return back()->withErrors(['vocabulary' => $e->getMessage()])->withInput();
+        }
+
+        try {
+            DB::transaction(function () use ($user, $cost, $words, $request, $isSystemKey) {
+                // Lock user for update to prevent race conditions
+                $user = User::lockForUpdate()->find($user->id);
+
+                // Re-check credits inside transaction
+                $apiKey = null;
+
+                if ($isSystemKey) {
+                    if ($user->free_cards_remaining < $cost) {
+                         throw new \DomainException("You don't have enough free credits to create that many cards. You have {$user->free_cards_remaining} credits left.");
+                    }
+                    $user->decrement('free_cards_remaining', $cost);
+                    $apiKey = \Illuminate\Support\Facades\Config::get('services.openai.key');
+                } else {
+                    if (empty($user->openai_api_key)) {
+                         throw new \DomainException("You have no free credits left. Please add your OpenAI API Key in Settings.");
+                    }
+                    $apiKey = $user->openai_api_key;
+                }
+
+                $batch = Batch::create([
+                    'user_id' => $user->id,
+                    'name' => 'Batch',
+                    'input_vocabulary' => $request->vocabulary,
+                    'prompt_id' => $request->prompt_id,
+                ]);
+                $batch->update(['name' => 'Batch ' . $batch->id]);
+
+                $wordChunks = array_chunk($words, 20);
+
+                foreach ($wordChunks as $chunk) {
+                    if (!empty($chunk)) {
+                        GenerateFlashcardsInBulk::dispatch($chunk, $user, $batch, $request->prompt_id, $apiKey);
+                    }
+                }
+            });
+        } catch (\DomainException $e) {
+             return back()->withErrors(['vocabulary' => $e->getMessage()])->withInput();
+        } catch (\Exception $e) {
+            Log::error('Error while storing flashcard generation request.', [
+                'user_id' => optional($request->user())->id ?? null,
+                'exception' => $e,
+            ]);
+            return back()
+                ->withErrors(['vocabulary' => 'An unexpected error occurred while processing your request. Please try again later.'])
+                ->withInput();
         }
 
         return redirect()->route('home')->with('success', 'Your request has been submitted. The flashcards will be generated in the background.');
+    }
+
+    private function validateOpenAIKey(string $apiKey, bool $isSystemKey)
+    {
+        try {
+            $response = Http::withToken($apiKey)->get('https://api.openai.com/v1/models');
+        } catch (\Exception $e) {
+            // Network error or other connection issue
+            if ($isSystemKey) {
+                Log::error('OpenAI Connection Failed (System Key)', ['exception' => $e]);
+                throw new \DomainException('Unable to connect to OpenAI services. Please try again later.');
+            }
+            throw new \DomainException('Unable to connect to OpenAI to validate your key.');
+        }
+
+        if ($response->successful()) {
+            return;
+        }
+
+        $status = $response->status();
+        $data = $response->json();
+        $errorCode = $data['error']['code'] ?? null;
+
+        if ($status === 401) {
+             if ($isSystemKey) {
+                 Log::critical('System OpenAI Key is invalid!');
+                 throw new \DomainException('System configuration error. The admin has been notified.');
+             }
+             throw new \DomainException('Your OpenAI API Key is invalid. Please check it in Settings.');
+        }
+
+        if ($status === 429 && $errorCode === 'insufficient_quota') {
+             if ($isSystemKey) {
+                 Log::critical('System OpenAI Key has insufficient quota!');
+                 throw new \DomainException('The system is currently out of AI credits. The admin has been notified.');
+             }
+             throw new \DomainException('You have insufficient credits on your OpenAI account. Please charge your account or adjust your spending limit at platform.openai.com.');
+        }
+
+        // Generic fallback for other errors
+        if ($isSystemKey) {
+            Log::error('OpenAI System Key Check Failed', ['status' => $status, 'body' => $response->body()]);
+            throw new \DomainException('An error occurred with the AI service. Please try again later.');
+        }
+        
+        throw new \DomainException('OpenAI API Error: ' . ($data['error']['message'] ?? 'Unknown error'));
     }
 
     public function buildAnkiNotes(Request $request)
@@ -103,7 +214,7 @@ class CardController extends Controller
                 Storage::disk('public')->delete($card->audio_path);
             }
 
-            GenerateTts::dispatchSync($card);
+            GenerateTts::dispatchSync($card, OpenAIKeyResolver::resolve($card->user));
             $card->refresh();
         }
 

@@ -22,20 +22,25 @@ class GenerateFlashcardsInBulk implements ShouldQueue
     protected User $user;
     protected Batch $batch;
     protected int $promptId;
+    protected string $apiKey;
 
-    public function __construct(array $words, User $user, Batch $batch, int $promptId)
+    public function __construct(array $words, User $user, Batch $batch, int $promptId, string $apiKey)
     {
         $this->words    = $words;
         $this->user     = $user;
         $this->batch    = $batch;
         $this->promptId = $promptId;
+        $this->apiKey   = $apiKey;
     }
 
     public function handle(): void
     {
+        $this->batch->update(['status' => 'processing']);
+
         $prompt = Prompt::find($this->promptId);
         if (!$prompt) {
             Log::error('Prompt not found', ['prompt_id' => $this->promptId]);
+            $this->batch->update(['status' => 'failed', 'error_message' => 'Prompt not found']);
             return;
         }
 
@@ -81,7 +86,7 @@ class GenerateFlashcardsInBulk implements ShouldQueue
 
         try {
             $resp = Http::timeout(120) // Increased timeout for bulk processing
-                ->withToken($this->user->openai_api_key)
+                ->withToken($this->apiKey)
                 ->post('https://api.openai.com/v1/responses', [
                     'model' => 'gpt-4o-2024-08-06',
                     'input' => [
@@ -104,6 +109,13 @@ class GenerateFlashcardsInBulk implements ShouldQueue
                     'status'   => $resp->status(),
                     'response' => $resp->body(),
                 ]);
+                
+                $errorMsg = 'AI generation failed.';
+                if ($resp->status() === 429) {
+                    $errorMsg = 'Insufficient OpenAI credits or rate limit exceeded.';
+                }
+                
+                $this->batch->update(['status' => 'failed', 'error_message' => $errorMsg]);
                 return;
             }
 
@@ -111,6 +123,7 @@ class GenerateFlashcardsInBulk implements ShouldQueue
 
             if (($data['status'] ?? null) !== 'completed') {
                 Log::error('OpenAI response incomplete', ['response' => $data]);
+                $this->batch->update(['status' => 'failed', 'error_message' => 'AI response was incomplete.']);
                 return;
             }
 
@@ -121,6 +134,7 @@ class GenerateFlashcardsInBulk implements ShouldQueue
                 foreach ($items as $item) {
                     if (($item['type'] ?? null) === 'refusal') {
                         Log::warning('Model refusal', ['refusal' => $item['refusal'] ?? '']);
+                        $this->batch->update(['status' => 'failed', 'error_message' => 'AI refused to generate content: ' . ($item['refusal'] ?? 'Unknown reason')]);
                         return;
                     }
                     if (($item['type'] ?? null) === 'output_text') {
@@ -132,12 +146,14 @@ class GenerateFlashcardsInBulk implements ShouldQueue
 
             if (!$jsonText) {
                 Log::error('No output_text found in OpenAI response', ['response' => $data]);
+                $this->batch->update(['status' => 'failed', 'error_message' => 'No valid output received from AI.']);
                 return;
             }
 
             $parsed = json_decode($jsonText, true);
             if (!is_array($parsed) || !isset($parsed['word_cards']) || !is_array($parsed['word_cards'])) {
                 Log::error('Parsed JSON missing expected "word_cards" array', ['parsed' => $parsed]);
+                $this->batch->update(['status' => 'failed', 'error_message' => 'Invalid data format received from AI.']);
                 return;
             }
 
@@ -158,11 +174,22 @@ class GenerateFlashcardsInBulk implements ShouldQueue
                         'batch_id' => $this->batch->id,
                     ]);
 
-                    GenerateTts::dispatch($card);
+                    GenerateTts::dispatch($card, $this->apiKey);
                 }
             }
+            
+            // If we got here, at least this chunk succeeded. 
+            // We update status to completed ONLY if it wasn't already marked as failed (by another chunk).
+            // Ideally we'd check if all chunks are done, but for now we atomically mark it completed
+            // only if the current status is not 'failed' to avoid overwriting an error state.
+            // Note: If multiple chunks, this might still flap between processing/completed, but a failure wins.
+            Batch::where('id', $this->batch->id)
+                ->where('status', '!=', 'failed')
+                ->update(['status' => 'completed']);
+
         } catch (\Throwable $e) {
             Log::error('Error generating flashcards in bulk', ['exception' => $e]);
+            $this->batch->update(['status' => 'failed', 'error_message' => 'System error during generation.']);
         }
     }
 }

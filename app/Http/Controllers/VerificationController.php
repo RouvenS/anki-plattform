@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Auth\Events\Verified;
 use App\Mail\VerifyEmail;
 
+use Illuminate\Support\Facades\Config;
+
 class VerificationController extends Controller
 {
     public function verify(Request $request, $id, $hash)
@@ -17,16 +19,22 @@ class VerificationController extends Controller
             abort(403, 'Invalid or expired link.');
         }
 
-        $user = User::findOrFail($id);
+        \Illuminate\Support\Facades\DB::transaction(function () use ($id, $hash) {
+            $user = User::lockForUpdate()->findOrFail($id);
 
-        if (! hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {
-            abort(403, 'Invalid link structure.');
-        }
+            if (! hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {
+                abort(403, 'Invalid link structure.');
+            }
 
-        if (! $user->hasVerifiedEmail()) {
-            $user->markEmailAsVerified();
-            event(new Verified($user));
-        }
+            if (! $user->hasVerifiedEmail()) {
+                if ($user->free_cards_remaining == 0) {
+                    $user->free_cards_remaining = Config::get('trial.free_cards_total', 10);
+                    $user->save();
+                }
+                $user->markEmailAsVerified();
+                event(new Verified($user));
+            }
+        });
 
         return view('auth.verify-email-success');
     }
@@ -39,7 +47,7 @@ class VerificationController extends Controller
 
         $url = URL::temporarySignedRoute(
             'email.verify',
-            now()->addMinutes(60),
+            now()->addHours(12),
             [
                 'id' => $request->user()->getKey(),
                 'hash' => sha1($request->user()->getEmailForVerification()),

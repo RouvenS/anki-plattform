@@ -33,7 +33,7 @@ class RegisterController extends Controller
 
         $url = URL::temporarySignedRoute(
             'email.verify',
-            now()->addMinutes(60),
+            now()->addHours(12),
             [
                 'id' => $user->getKey(),
                 'hash' => sha1($user->getEmailForVerification()),

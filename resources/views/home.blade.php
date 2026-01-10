@@ -14,7 +14,7 @@
           <svg class="w-5 h-5 text-amber-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M12 9v4M12 17h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" />
           </svg>
-          <span class="text-sm font-medium ml-2">Please confirm your email to use your free credits.</span>
+          <span class="text-sm font-medium ml-2">Please confirm your email to use your {{ $freeCardsTotal }} free credits.</span>
           <form method="POST" action="{{ route('verification.resend') }}" class="inline ml-3" x-data="{ sending: false }" x-on:submit="sending = true">
             @csrf
             <button type="submit" :disabled="sending" class="text-sm font-bold underline hover:text-amber-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
@@ -62,9 +62,14 @@
           </div>
 
           <div>
-            <label for="vocabulary" class="block text-sm font-medium text-slate-700 mb-2">
-              Enter your vocabulary words, one per line:
-            </label>
+            <div class="flex justify-between items-center mb-2">
+                <label for="vocabulary" class="block text-sm font-medium text-slate-700">
+                  Enter your vocabulary words, one per line:
+                </label>
+                <p class="text-sm font-medium {{ Auth::user()->free_cards_remaining > 0 ? 'text-emerald-600' : 'text-red-600' }}">
+                    You have {{ Auth::user()->free_cards_remaining }} of {{ $freeCardsTotal }} free cards left
+                </p>
+            </div>
             <textarea id="vocabulary" name="vocabulary" rows="4"
               placeholder="car - машина (optional translation, if you want a specific one) 
 plane - самолёт
@@ -74,8 +79,8 @@ try - пытаться"
                      focus:ring-0 placeholder:text-slate-400
                      shadow-inner px-3 py-3"></textarea>
           </div>
-
-          @if(Auth::user()?->openai_api_key)
+                     
+          @if(Auth::user()->free_cards_remaining > 0 || Auth::user()->openai_api_key)
             <div class="flex items-center justify-end">
               <button type="submit" class="btn-primary">
                 <span>Generate Cards</span>
@@ -130,6 +135,20 @@ try - пытаться"
                         <div class="flex justify-between items-start">
                             <div class="text-sm text-slate-900 font-medium">
                                 <span class="editable-batch-name" data-batch-id="{{ $batch->id }}" contenteditable="true">{{ $batch->name }}</span>
+                                <div class="mt-1">
+                                    @if($batch->status === 'failed')
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">Failed</span>
+                                        @if($batch->error_message)
+                                            <p class="text-xs text-red-600 mt-1">{{ $batch->error_message }}</p>
+                                        @endif
+                                    @elseif($batch->status === 'completed')
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">Completed</span>
+                                    @elseif($batch->status === 'processing')
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">Processing</span>
+                                    @else
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">Pending</span>
+                                    @endif
+                                </div>
                             </div>
                             <div class="text-xs text-slate-500">{{ $batch->created_at->format('Y-m-d H:i') }}</div>
                         </div>
@@ -154,6 +173,7 @@ try - пытаться"
                 <thead class="border-b border-slate-200">
                     <tr>
                         <th scope="col" class="px-6 py-3 text-left text-sm font-medium text-slate-500">Name</th>
+                        <th scope="col" class="px-6 py-3 text-left text-sm font-medium text-slate-500">Status</th>
                         <th scope="col" class="px-6 py-3 text-left text-sm font-medium text-slate-500">Created At</th>
                         <th scope="col" class="relative px-6 py-3"><span class="sr-only">Actions</span></th>
                     </tr>
@@ -165,6 +185,20 @@ try - пытаться"
                                 <div class="text-sm text-slate-900">
                                     <span class="editable-batch-name" data-batch-id="{{ $batch->id }}" contenteditable="true">{{ $batch->name }}</span>
                                 </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                @if($batch->status === 'failed')
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800" title="{{ $batch->error_message }}">Failed</span>
+                                    @if($batch->error_message)
+                                        <div class="text-xs text-red-500 mt-1 max-w-xs truncate" title="{{ $batch->error_message }}">{{ $batch->error_message }}</div>
+                                    @endif
+                                @elseif($batch->status === 'completed')
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Completed</span>
+                                @elseif($batch->status === 'processing')
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Processing</span>
+                                @else
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">Pending</span>
+                                @endif
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="text-sm text-slate-900">{{ $batch->created_at->format('Y-m-d H:i:s') }}</div>
