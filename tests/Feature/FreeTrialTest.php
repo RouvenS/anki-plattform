@@ -91,6 +91,25 @@ class FreeTrialTest extends TestCase
         Queue::assertNothingPushed();
     }
 
+    public function test_batch_creation_succeeds_with_exact_credits()
+    {
+        Queue::fake();
+        $user = User::factory()->create([
+            'free_cards_remaining' => 3,
+            'openai_api_key' => null,
+        ]);
+        $prompt = Prompt::factory()->create();
+
+        $response = $this->actingAs($user)->post(route('cards.store'), [
+            'vocabulary' => "one\ntwo\nthree", // Cost 3
+            'prompt_id' => $prompt->id,
+        ]);
+
+        $response->assertRedirect(route('home'));
+        $this->assertEquals(0, $user->fresh()->free_cards_remaining);
+        Queue::assertPushed(GenerateFlashcardsInBulk::class);
+    }
+
     public function test_batch_creation_falls_back_to_user_key_if_no_credits()
     {
         Queue::fake();
