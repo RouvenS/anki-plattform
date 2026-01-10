@@ -19,20 +19,22 @@ class VerificationController extends Controller
             abort(403, 'Invalid or expired link.');
         }
 
-        $user = User::findOrFail($id);
+        \Illuminate\Support\Facades\DB::transaction(function () use ($id, $hash) {
+            $user = User::lockForUpdate()->findOrFail($id);
 
-        if (! hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {
-            abort(403, 'Invalid link structure.');
-        }
-
-        if (! $user->hasVerifiedEmail()) {
-            if ($user->free_cards_remaining == 0) {
-                $user->free_cards_remaining = Config::get('trial.free_cards_total', 10);
-                $user->save();
+            if (! hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {
+                abort(403, 'Invalid link structure.');
             }
-            $user->markEmailAsVerified();
-            event(new Verified($user));
-        }
+
+            if (! $user->hasVerifiedEmail()) {
+                if ($user->free_cards_remaining == 0) {
+                    $user->free_cards_remaining = Config::get('trial.free_cards_total', 10);
+                    $user->save();
+                }
+                $user->markEmailAsVerified();
+                event(new Verified($user));
+            }
+        });
 
         return view('auth.verify-email-success');
     }

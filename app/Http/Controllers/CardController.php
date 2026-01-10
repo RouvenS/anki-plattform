@@ -34,11 +34,12 @@ class CardController extends Controller
 
         $user = $request->user();
 
-        // Transaction to ensure atomicity of credit deduction
         try {
-            $apiKey = DB::transaction(function () use ($user, $cost) {
+            DB::transaction(function () use ($user, $cost, $words, $request) {
                 // Lock user for update to prevent race conditions
                 $user = User::lockForUpdate()->find($user->id);
+
+                $apiKey = null;
 
                 if ($user->free_cards_remaining > 0) {
                     // User is in "Free Trial" mode (has credits)
@@ -48,39 +49,32 @@ class CardController extends Controller
 
                     // Deduct credits
                     $user->decrement('free_cards_remaining', $cost);
-                    
-                    // Use App Key (resolved before decrement effectively, or just explicitly here)
-                    return OpenAIKeyResolver::resolve($user) ?? env('OPENAI_API_KEY'); 
-                    // Note: resolver checks DB value. Since we just decremented, if we went to 0, resolve might return User Key if we re-fetch.
-                    // But here we know we are in the "Free" path.
-                    // Let's just use the App Key directly or resolve based on the *state before decrement* logic.
-                    // Requirement: "If user.free_cards_remaining > 0: use env('OPENAI_API_KEY')".
-                    // Since we entered this block because `free_cards_remaining > 0`, we use App Key.
-                    return env('OPENAI_API_KEY');
+
+                    $apiKey = \Illuminate\Support\Facades\Config::get('services.openai.key');
                 } else {
                     // User is in "Paid" mode (no credits)
                     if (empty($user->openai_api_key)) {
                          throw new \Exception("You have no free credits left. Please add your OpenAI API Key in Settings.");
                     }
-                    return $user->openai_api_key;
+                    $apiKey = $user->openai_api_key;
+                }
+
+                $batch = Batch::create([
+                    'user_id' => $user->id,
+                    'name' => 'Batch',
+                ]);
+                $batch->update(['name' => 'Batch ' . $batch->id]);
+
+                $wordChunks = array_chunk($words, 20);
+
+                foreach ($wordChunks as $chunk) {
+                    if (!empty($chunk)) {
+                        GenerateFlashcardsInBulk::dispatch($chunk, $user, $batch, $request->prompt_id, $apiKey);
+                    }
                 }
             });
         } catch (\Exception $e) {
              return back()->withErrors(['vocabulary' => $e->getMessage()])->withInput();
-        }
-
-        $batch = Batch::create([
-            'user_id' => $user->id,
-            'name' => 'Batch',
-        ]);
-        $batch->update(['name' => 'Batch ' . $batch->id]);
-
-        $wordChunks = array_chunk($words, 20);
-
-        foreach ($wordChunks as $chunk) {
-            if (!empty($chunk)) {
-                GenerateFlashcardsInBulk::dispatch($chunk, $user, $batch, $request->prompt_id, $apiKey);
-            }
         }
 
         return redirect()->route('home')->with('success', 'Your request has been submitted. The flashcards will be generated in the background.');

@@ -17,7 +17,7 @@ class OpenAIKeyResolver
     {
         // If user has free credits, use the App's API Key
         if ($user->free_cards_remaining > 0) {
-            return env('OPENAI_API_KEY');
+            return Config::get('services.openai.key');
         }
 
         // Otherwise, use the User's API Key

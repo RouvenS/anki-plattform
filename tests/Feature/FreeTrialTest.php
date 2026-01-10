@@ -33,14 +33,31 @@ class FreeTrialTest extends TestCase
 
         $verificationUrl = URL::temporarySignedRoute(
             'email.verify',
-            now()->addMinutes(60),
+            now()->addHours(12),
             ['id' => $user->id, 'hash' => sha1($user->getEmailForVerification())]
         );
 
         $response = $this->get($verificationUrl);
 
         $response->assertSuccessful();
+        $response->assertViewIs('auth.verify-email-success');
         $this->assertEquals(50, $user->fresh()->free_cards_remaining);
+    }
+
+    public function test_verification_does_not_add_credits_if_already_exist()
+    {
+        $user = User::factory()->unverified()->create(['free_cards_remaining' => 5]);
+
+        $verificationUrl = URL::temporarySignedRoute(
+            'email.verify',
+            now()->addHours(12),
+            ['id' => $user->id, 'hash' => sha1($user->getEmailForVerification())]
+        );
+
+        $response = $this->get($verificationUrl);
+
+        $response->assertSuccessful();
+        $this->assertEquals(5, $user->fresh()->free_cards_remaining);
     }
 
     public function test_batch_creation_deducts_credits_and_uses_app_key()
@@ -68,7 +85,7 @@ class FreeTrialTest extends TestCase
             $property->setAccessible(true);
             $apiKey = $property->getValue($job);
 
-            return $apiKey === env('OPENAI_API_KEY');
+            return $apiKey === Config::get('services.openai.key');
         });
     }
 
@@ -155,5 +172,15 @@ class FreeTrialTest extends TestCase
 
         $response->assertSessionHasErrors('vocabulary');
         Queue::assertNothingPushed();
+    }
+
+    public function test_home_page_shows_free_cards_total()
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->get(route('home'));
+
+        $response->assertSuccessful();
+        $response->assertViewHas('freeCardsTotal', 50);
     }
 }

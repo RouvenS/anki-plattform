@@ -20,6 +20,7 @@ class PromptFactory extends Factory
             'name' => $this->faker->words(3, true),
             'prompt' => $this->faker->sentence(),
             'is_standard' => false,
+            'user_id' => null,
         ];
     }
 }
