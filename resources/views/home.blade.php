@@ -14,7 +14,7 @@
           <svg class="w-5 h-5 text-amber-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M12 9v4M12 17h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" />
           </svg>
-          <span class="text-sm font-medium ml-2">Please confirm your email to use your free credits.</span>
+          <span class="text-sm font-medium ml-2">Please confirm your email to use your {{ $freeCardsTotal }} free credits.</span>
           <form method="POST" action="{{ route('verification.resend') }}" class="inline ml-3" x-data="{ sending: false }" x-on:submit="sending = true">
             @csrf
             <button type="submit" :disabled="sending" class="text-sm font-bold underline hover:text-amber-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
