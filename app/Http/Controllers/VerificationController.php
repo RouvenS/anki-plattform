@@ -45,7 +45,7 @@ class VerificationController extends Controller
 
         $url = URL::temporarySignedRoute(
             'email.verify',
-            now()->addMinutes(60),
+            now()->addHours(12),
             [
                 'id' => $request->user()->getKey(),
                 'hash' => sha1($request->user()->getEmailForVerification()),
