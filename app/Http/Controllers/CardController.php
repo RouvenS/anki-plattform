@@ -73,7 +73,7 @@ class CardController extends Controller
             'user_id' => $user->id,
             'name' => 'Batch',
         ]);
-        $batch->update(['name' => 'Batch ' . $batch->id]); // Fixed naming to include space
+        $batch->update(['name' => 'Batch ' . $batch->id]);
 
         $wordChunks = array_chunk($words, 20);
 
