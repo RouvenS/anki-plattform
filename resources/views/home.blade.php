@@ -77,12 +77,13 @@ improve - улучшать
 try - пытаться"
               class="min-h-48 text-lg w-full rounded-2xl border-0 bg-transparent resize-y
                      focus:ring-0 placeholder:text-slate-400
-                                           shadow-inner px-3 py-3"></textarea>
-                               </div>
+                     shadow-inner px-3 py-3"></textarea>
+          </div>
                      
-                               @if(Auth::user()->free_cards_remaining > 0 || Auth::user()->openai_api_key)
-                                 <div class="flex items-center justify-end">
-                                   <button type="submit" class="btn-primary">                <span>Generate Cards</span>
+          @if(Auth::user()->free_cards_remaining > 0 || Auth::user()->openai_api_key)
+            <div class="flex items-center justify-end">
+              <button type="submit" class="btn-primary">
+                <span>Generate Cards</span>
                 {{-- arrow icon --}}
                 <svg class="w-4 h-4 ml-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M5 12h14" />
