@@ -27,7 +27,7 @@ class VerificationController extends Controller
 
         if (! $user->hasVerifiedEmail()) {
             if ($user->free_cards_remaining == 0) {
-                $user->free_cards_remaining = Config::get('trial.free_cards_total', 50);
+                $user->free_cards_remaining = Config::get('trial.free_cards_total', 10);
                 $user->save();
             }
             $user->markEmailAsVerified();
