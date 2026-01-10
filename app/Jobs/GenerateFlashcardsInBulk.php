@@ -179,11 +179,13 @@ class GenerateFlashcardsInBulk implements ShouldQueue
             }
             
             // If we got here, at least this chunk succeeded. 
-            // We update status to completed ONLY if it wasn't already marked as failed (by another chunk race condition? unlikely with simple update)
-            // Ideally we'd check if all chunks are done, but for now let's mark it completed. 
-            // Note: If multiple chunks, this might flap between processing/completed. 
-            // But usually this job IS the batch for now.
-            $this->batch->update(['status' => 'completed']);
+            // We update status to completed ONLY if it wasn't already marked as failed (by another chunk).
+            // Ideally we'd check if all chunks are done, but for now we atomically mark it completed
+            // only if the current status is not 'failed' to avoid overwriting an error state.
+            // Note: If multiple chunks, this might still flap between processing/completed, but a failure wins.
+            Batch::where('id', $this->batch->id)
+                ->where('status', '!=', 'failed')
+                ->update(['status' => 'completed']);
 
         } catch (\Throwable $e) {
             Log::error('Error generating flashcards in bulk', ['exception' => $e]);

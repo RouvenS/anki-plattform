@@ -65,35 +65,52 @@ class BatchController extends Controller
         $cost = count($words);
         $user = $request->user();
 
+        // Determine and validate key before transaction
+        $apiKey = null;
+        $isSystemKey = false;
+
+        if ($user->free_cards_remaining > 0) {
+            $apiKey = Config::get('services.openai.key');
+            $isSystemKey = true;
+        } else {
+            if (empty($user->openai_api_key)) {
+                return back()->withErrors(['message' => "You have no free credits left. Please add your OpenAI API Key in Settings."]);
+            }
+            $apiKey = $user->openai_api_key;
+        }
+
         try {
-            DB::transaction(function () use ($user, $cost, $words, $batch) {
+            $this->validateOpenAIKey($apiKey, $isSystemKey);
+        } catch (\DomainException $e) {
+            return back()->withErrors(['message' => $e->getMessage()]);
+        }
+
+        try {
+            DB::transaction(function () use ($user, $cost, $words, $batch, $isSystemKey) {
                 // Lock user for update
                 $user = User::lockForUpdate()->find($user->id);
 
-                $apiKey = null;
-                $isSystemKey = false;
-
-                if ($user->free_cards_remaining > 0) {
-                    // User is in "Free Trial" mode
-                    if ($cost > $user->free_cards_remaining) {
+                // Re-check credits inside transaction to be safe
+                // Note: We used $isSystemKey from outside snapshot. 
+                // If user lost credits in between, we fall back to logic:
+                // If intended to use System Key but ran out -> Fail? Or switch to User Key?
+                // For simplicity and safety: If we intended System Key (Free), we MUST have credits.
+                
+                if ($isSystemKey) {
+                    if ($user->free_cards_remaining < $cost) {
                          throw new \DomainException("You don't have enough free credits to retry. You need {$cost} credits.");
                     }
-
-                    // Deduct credits
                     $user->decrement('free_cards_remaining', $cost);
-
                     $apiKey = Config::get('services.openai.key');
-                    $isSystemKey = true;
                 } else {
-                    // User is in "Paid" mode
+                    // Intended to use User Key.
+                    // Even if they gained credits now, we stick to User Key as validated?
+                    // Or we just check if they have a key.
                     if (empty($user->openai_api_key)) {
                          throw new \DomainException("You have no free credits left. Please add your OpenAI API Key in Settings.");
                     }
                     $apiKey = $user->openai_api_key;
                 }
-
-                // Validate OpenAI Key
-                $this->validateOpenAIKey($apiKey, $isSystemKey);
 
                 // Reset batch status
                 $batch->update([
@@ -101,12 +118,13 @@ class BatchController extends Controller
                     'error_message' => null
                 ]);
 
-                // Clear existing cards to avoid duplicates? 
-                // Since this is a "bulk" generation that might have partially succeeded, 
-                // maybe we should NOT clear? But the job generates ALL cards for the list.
-                // If we don't clear, we get duplicates.
-                // Let's clear them for a clean retry.
-                $batch->cards()->delete();
+                // NOTE: Do NOT clear existing cards here.
+                // The batch may have partially succeeded before failing. If we delete
+                // existing cards and then re-charge for the full word list, users lose
+                // both their previously generated cards and the credits they spent.
+                // Instead, we keep existing cards and allow the retry to generate any
+                // missing ones, even if that may result in some duplicates.
+                // $batch->cards()->delete(); 
 
                 $wordChunks = array_chunk($words, 20);
 

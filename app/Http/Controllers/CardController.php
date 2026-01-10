@@ -34,35 +34,46 @@ class CardController extends Controller
 
         $user = $request->user();
 
+        // Determine and validate key before transaction
+        $apiKey = null;
+        $isSystemKey = false;
+
+        if ($user->free_cards_remaining > 0) {
+            $apiKey = \Illuminate\Support\Facades\Config::get('services.openai.key');
+            $isSystemKey = true;
+        } else {
+            if (empty($user->openai_api_key)) {
+                return back()->withErrors(['vocabulary' => "You have no free credits left. Please add your OpenAI API Key in Settings."])->withInput();
+            }
+            $apiKey = $user->openai_api_key;
+        }
+
         try {
-            DB::transaction(function () use ($user, $cost, $words, $request) {
+            $this->validateOpenAIKey($apiKey, $isSystemKey);
+        } catch (\DomainException $e) {
+            return back()->withErrors(['vocabulary' => $e->getMessage()])->withInput();
+        }
+
+        try {
+            DB::transaction(function () use ($user, $cost, $words, $request, $isSystemKey) {
                 // Lock user for update to prevent race conditions
                 $user = User::lockForUpdate()->find($user->id);
 
+                // Re-check credits inside transaction
                 $apiKey = null;
-                $isSystemKey = false;
 
-                if ($user->free_cards_remaining > 0) {
-                    // User is in "Free Trial" mode (has credits)
-                    if ($cost > $user->free_cards_remaining) {
+                if ($isSystemKey) {
+                    if ($user->free_cards_remaining < $cost) {
                          throw new \DomainException("You don't have enough free credits to create that many cards. You have {$user->free_cards_remaining} credits left.");
                     }
-
-                    // Deduct credits
                     $user->decrement('free_cards_remaining', $cost);
-
                     $apiKey = \Illuminate\Support\Facades\Config::get('services.openai.key');
-                    $isSystemKey = true;
                 } else {
-                    // User is in "Paid" mode (no credits)
                     if (empty($user->openai_api_key)) {
                          throw new \DomainException("You have no free credits left. Please add your OpenAI API Key in Settings.");
                     }
                     $apiKey = $user->openai_api_key;
                 }
-
-                // Validate OpenAI Key before proceeding
-                $this->validateOpenAIKey($apiKey, $isSystemKey);
 
                 $batch = Batch::create([
                     'user_id' => $user->id,
